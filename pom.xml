@@ -138,48 +138,6 @@
                         </configuration>
                     </plugin>
 
-                    <!-- Filter fonts and images (fonts do not work if they do not get filtered). -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>${maven-resources-plugin.version}</version>
-                        <configuration>
-                            <nonFilteredFileExtensions>
-                                <nonFilteredFileExtension>woff</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>woff2</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>ttf</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>eot</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>jpeg</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>gif</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>png</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>svg</nonFilteredFileExtension>
-                                <nonFilteredFileExtension>ico</nonFilteredFileExtension>
-                            </nonFilteredFileExtensions>
-                        </configuration>
-                    </plugin>
-
-                    <!-- Add Dagger generated sources to the source path. GWT compile needs this. -->
-                    <!--<plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>${build-helper-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>add-source</id>
-                                <phase>generate-sources</phase>
-                                <goals>
-                                    <goal>add-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>target/generated-sources/annotations</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>-->
-
                     <!-- Sign GPG -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
