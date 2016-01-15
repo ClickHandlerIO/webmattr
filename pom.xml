@@ -55,6 +55,8 @@
         <gwt.version>2.8.0-beta1</gwt.version>
         <dagger-gwt.version>0.1.0-SNAPSHOT</dagger-gwt.version>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+        <maven-resources-plugin.version>2.3</maven-resources-plugin.version>
+        <build-helper-maven-plugin.version>1.10</build-helper-maven-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.3</nexus-staging-maven-plugin.version>
     </properties>
@@ -114,6 +116,12 @@
                 <resources>
                     <resource>
                         <directory>src/main/java</directory>
+                        <filtering>true</filtering>
+                    </resource>
+
+                    <resource>
+                        <directory>target/generated-sources/annotations</directory>
+                        <filtering>true</filtering>
                     </resource>
                 </resources>
 
@@ -129,6 +137,48 @@
                             <target>${java.version}</target>
                         </configuration>
                     </plugin>
+
+                    <!-- Filter fonts and images (fonts do not work if they do not get filtered). -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>${maven-resources-plugin.version}</version>
+                        <configuration>
+                            <nonFilteredFileExtensions>
+                                <nonFilteredFileExtension>woff</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>woff2</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>ttf</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>eot</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>jpg</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>jpeg</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>gif</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>png</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>svg</nonFilteredFileExtension>
+                                <nonFilteredFileExtension>ico</nonFilteredFileExtension>
+                            </nonFilteredFileExtensions>
+                        </configuration>
+                    </plugin>
+
+                    <!-- Add Dagger generated sources to the source path. GWT compile needs this. -->
+                    <!--<plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>${build-helper-maven-plugin.version}</version>
+                        <executions>
+                            <execution>
+                                <id>add-source</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>target/generated-sources/annotations</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>-->
 
                     <!-- Sign GPG -->
                     <plugin>
