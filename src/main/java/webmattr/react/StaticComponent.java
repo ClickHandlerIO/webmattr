@@ -1,0 +1,13 @@
+package webmattr.react;
+
+/**
+ *
+ */
+public abstract class StaticComponent extends ComponentSpec<BaseProps, Object> {
+    @Override
+    protected ReactElement render(ReactComponent<BaseProps, Object> $this, BaseProps props, Object state) {
+        return render($this, props);
+    }
+
+    protected abstract ReactElement render(ReactComponent<BaseProps, Object> $this, BaseProps props);
+}
