@@ -43,11 +43,11 @@
             <organizationUrl>http://www.clickhandler.io</organizationUrl>
         </developer>
     </developers>
-    <!--<scm>-->
-        <!--<connection>scm:git:git@github.com:ClickHandlerIO/webmattr.git</connection>-->
-        <!--<developerConnection>scm:git:git@github.com:ClickHandlerIO/webmattr.git</developerConnection>-->
-        <!--<url>git@github.com:ClickHandlerIO/webmattr.git</url>-->
-    <!--</scm>-->
+    <scm>
+        <connection>scm:git:git@github.com:ClickHandlerIO/webmattr.git</connection>
+        <developerConnection>scm:git:git@github.com:ClickHandlerIO/webmattr.git</developerConnection>
+        <url>git@github.com:ClickHandlerIO/webmattr.git</url>
+    </scm>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
