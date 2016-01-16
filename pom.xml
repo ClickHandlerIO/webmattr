@@ -139,13 +139,32 @@
                     <resource>
                         <directory>src/main/java</directory>
                     </resource>
-
-                    <resource>
-                        <directory>${project.basedir}/target/generated-sources/annotations</directory>
-                    </resource>
                 </resources>
 
                 <plugins>
+
+                    <plugin>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>2.5</version>
+                        <executions>
+                            <execution>
+                                <id>copy-resources</id>
+                                <phase>process-classes</phase>
+                                <goals>
+                                    <goal>copy-resources</goal>
+                                </goals>
+                                <configuration>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${basedir}/target/generated-sources/annotations</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
 
                     <!-- Maven compiler -->
                     <plugin>
