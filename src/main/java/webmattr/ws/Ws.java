@@ -1,10 +1,11 @@
 package webmattr.ws;
 
+import com.google.gwt.user.client.Timer;
 import elemental.client.Browser;
 import elemental.events.Event;
 import elemental.html.WebSocket;
 import webmattr.Try;
-import webmattr.event.Bus;
+import webmattr.Bus;
 import webmattr.Func;
 
 /**
@@ -22,6 +23,8 @@ public class Ws {
     private boolean connecting;
     private boolean closing;
     private boolean autoConnect = true;
+    private int connectRetryMillis = 1000;
+    private Timer connectTimer;
 
     public Ws(Bus bus,
               String url,
@@ -65,18 +68,12 @@ public class Ws {
         webSocket = Browser.getWindow().newWebSocket(url);
 
         wireOnOpen(webSocket, (event) -> {
-            Browser.getWindow().getConsole().log("WebSocket.onopen");
-            Browser.getWindow().getConsole().log(event);
-            connected = true;
-            connecting = false;
-            closing = false;
-            Try.silent(connectedCallback);
+            onOpen();
         });
 
         wireOnClose(webSocket, event -> {
-            connected = false;
-            closing = false;
-            Try.silent(closedCallback);
+            onClose();
+
         });
 
         wireOnError(webSocket, event -> {
@@ -88,6 +85,28 @@ public class Ws {
             final String payload = getData(event);
             Try.silent(dataCallback, payload);
         });
+    }
+
+    private void onOpen() {
+        connected = true;
+        connecting = false;
+        closing = false;
+
+        Try.silent(connectedCallback);
+    }
+
+    private void onClose() {
+        connected = false;
+        closing = false;
+        Try.silent(closedCallback);
+
+        if (!autoConnect) {
+            return;
+        }
+
+        if (connectTimer == null) {
+//            connectTimer = new Timer() {};
+        }
     }
 
     private native String getData(Event event) /*-{

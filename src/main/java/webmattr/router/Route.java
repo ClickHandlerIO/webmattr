@@ -1,8 +1,9 @@
 package webmattr.router;
 
 import jsinterop.annotations.JsIgnore;
+import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
-import webmattr.react.ComponentSpec;
+import webmattr.react.Component;
 
 import javax.inject.Provider;
 
@@ -20,54 +21,64 @@ public class Route {
      * <p/>
      * If left undefined, the router will try to match the child routes.
      */
+    @JsProperty
     public String path;
 
     /**
      * A single component to be rendered when the route matches the URL. It can be rendered by the
      * parent route component with this.props.children.
      */
+    @JsProperty
     public Object component;
 
     /**
      * A single component to be rendered when the route matches the URL.
      * It can be rendered by the parent route component with this.props.children.
      */
+    @JsProperty
     public Object components;
 
     /**
      *
      */
+    @JsProperty
     public Route indexRoute;
 
     /**
      * Asynchronously get the index route.
      */
+    @JsProperty
     public ChildRouteCallback getIndexRoute;
 
     /**
      *
      */
+    @JsProperty
     public Route[] childRoutes;
 
     /**
      * Async
      */
+    @JsProperty
     public ChildRoutesCallback getChildRoutes;
 
     /**
      * Same as component but asynchronous, useful for code-splitting.
      */
+    @JsProperty
     public GetComponentCallback getComponent;
 
     /**
      * Same as component but asynchronous, useful for code-splitting.
      */
+    @JsProperty
     public GetComponentsCallback getComponents;
 
     /**
      *
      */
-    public OnEnterFunction onEnter;
+    @JsProperty
+    public OnEnterRoute onEnter;
 
     @JsIgnore
     public Route path(String path) {
@@ -82,7 +93,7 @@ public class Route {
     }
 
     @JsIgnore
-    public Route component(ComponentSpec component) {
+    public Route component(Component component) {
         this.component = component.getReactClass();
         return this;
     }
@@ -130,13 +141,13 @@ public class Route {
     }
 
     @JsIgnore
-    public Route onEnter(OnEnterFunction onEnter) {
+    public Route onEnter(OnEnterRoute onEnter) {
         this.onEnter = onEnter;
         return this;
     }
 
     @JsIgnore
-    public Route onEnter(Provider<OnEnterFunction> onEnterProvider) {
+    public Route onEnter(Provider<OnEnterRoute> onEnterProvider) {
         this.onEnter = onEnterProvider != null ? onEnterProvider.get() : null;
         return this;
     }

@@ -77,14 +77,6 @@ public class React {
     @JsMethod(namespace = "React", name = "createElement")
     public static native ReactElement createElement(Object component, Object props, Object... children);
 
-    /**
-     *
-     * @param type
-     * @param <P>
-     * @return
-     */
-    @JsMethod(namespace = "React", name = "createFactory")
-    public static native <P extends Props> ReactFactory<P> createFactory(Object type);
 
     public static native <T> T getProps(Object component) /*-{
         return component && component.props ? component.props : {};
@@ -139,6 +131,10 @@ public class React {
             }
         }
         return extension;
+    }-*/;
+
+    public static native void assign(Object target, Object sources) /*-{
+        Object.assign(target, sources);
     }-*/;
 
     /**

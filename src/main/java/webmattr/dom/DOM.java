@@ -4627,16 +4627,6 @@ public interface DOM {
             return this;
         }
 
-        public ChildList add(ReactChildren... children) {
-            if (children == null) {
-                return this;
-            }
-            for (int i = 0; i < children.length; i++) {
-                list.add(children[i]);
-            }
-            return this;
-        }
-
         public ChildList add(ReactElement... children) {
             if (children == null) {
                 return this;

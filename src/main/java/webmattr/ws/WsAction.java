@@ -10,18 +10,18 @@ import javax.inject.Inject;
  *
  */
 public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
-    private WsDispatcher dispatcher;
+    @Inject
+    WsDispatcher dispatcher;
 
     public WsDispatcher getDispatcher() {
         return dispatcher;
     }
 
-    @Inject
-    public void setDispatcher(WsDispatcher dispatcher) {
-        this.dispatcher = dispatcher;
-    }
-
-    protected abstract String type();
+    /**
+     *
+     * @return
+     */
+    protected abstract String path();
 
     protected String stringify(IN request) {
         return JSON.stringify(request);
@@ -30,9 +30,13 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
     @Override
     protected void handle(IN request) {
         dispatcher.request(
+            // Timeout Millis.
             timeoutMillis(),
-            type(),
+            // Action name.
+            path(),
+            // Serialize request.
             stringify(request),
+            // Handle response.
             envelope -> {
                 if (envelope == null) {
                     return;
@@ -43,6 +47,7 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
                     respond(parseOut(envelope.getPayload()));
                 }
             },
+            // Handle timeout.
             () -> error(new TimedOutException())
         );
     }

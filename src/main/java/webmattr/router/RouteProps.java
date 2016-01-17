@@ -9,7 +9,7 @@ import webmattr.react.Props;
  *
  */
 @JsType
-public class RouteProps extends Props<Element> {
+public class RouteProps<P> extends Props<Element> {
     /**
      * The Router's history history.
      * <p/>
@@ -51,11 +51,5 @@ public class RouteProps extends Props<Element> {
      * @return
      */
     @JsProperty
-    public native Object getRouteParams();
-
-    /**
-     * @return
-     */
-    @JsProperty
-    public native Route[] getRoutes();
+    public native P getRouteParams();
 }

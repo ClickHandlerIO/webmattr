@@ -10,7 +10,7 @@ import jsinterop.annotations.JsType;
 import webmattr.Func;
 import webmattr.action.*;
 import webmattr.dom.DOM;
-import webmattr.event.Bus;
+import webmattr.Bus;
 import webmattr.router.History;
 
 import javax.inject.Inject;
@@ -20,7 +20,7 @@ import javax.inject.Provider;
  * @param <P>
  * @param <S>
  */
-public abstract class ComponentSpec<P, S> {
+public abstract class Component<P, S> {
 
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
@@ -76,7 +76,7 @@ public abstract class ComponentSpec<P, S> {
     private Bus bus;
     private History history;
 
-    public ComponentSpec() {
+    public Component() {
         addContextTypes(contextTypes);
         displayName = getDisplayName();
     }

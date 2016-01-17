@@ -1,10 +1,10 @@
 package webmattr.ws;
 
 import com.google.gwt.user.client.Timer;
+import webmattr.Func;
 import webmattr.JSON;
 import webmattr.Try;
-import webmattr.event.Bus;
-import webmattr.Func;
+import webmattr.Bus;
 
 import java.util.*;
 
@@ -20,7 +20,7 @@ public class WsDispatcher {
     private final LinkedHashMap<Integer, Outgoing> calls = new LinkedHashMap<>();
 
     private Ws webSocket;
-    private int reaperMillis = 1000;
+    private int reaperMillis = 500;
     private Timer reaperTimer;
     private int id = 0;
 
@@ -132,6 +132,7 @@ public class WsDispatcher {
      * @param call
      */
     private void send(Outgoing call) {
+        call.tries++;
         if (!webSocket.isConnected()) {
             pendingQueue.add(call);
         } else {
@@ -265,6 +266,7 @@ public class WsDispatcher {
         private final WsEnvelope envelope;
         private final Func.Run1<WsEnvelope> callback;
         private final Func.Run timeoutCallback;
+        private int tries = 0;
 
         public Outgoing(long started, int timeoutMillis, WsEnvelope envelope, Func.Run1<WsEnvelope> callback, Func.Run timeoutCallback) {
             this.started = started;

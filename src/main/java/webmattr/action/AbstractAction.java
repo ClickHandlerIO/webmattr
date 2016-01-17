@@ -2,7 +2,7 @@ package webmattr.action;
 
 import webmattr.JSON;
 import webmattr.Try;
-import webmattr.event.Bus;
+import webmattr.Bus;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
