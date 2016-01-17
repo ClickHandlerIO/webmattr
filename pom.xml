@@ -14,7 +14,7 @@
     <version>0.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>webmattr</name>
-    <description>Dagger + GWT</description>
+    <description>React + GWT Foundation</description>
     <url>http://www.clickhandler.io</url>
     <organization>
         <name>ClickHandlerIO LLC</name>
@@ -55,7 +55,7 @@
         <gwt.version>2.8.0-beta1</gwt.version>
         <dagger-gwt.version>0.1.0-SNAPSHOT</dagger-gwt.version>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
-        <build-helper-maven-plugin.version>1.10</build-helper-maven-plugin.version>
+        <maven-resources-plugin.version>2.5</maven-resources-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.6</nexus-staging-maven-plugin.version>
     </properties>
@@ -143,9 +143,21 @@
 
                 <plugins>
 
+                    <!-- Maven compiler -->
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <version>${maven-compiler-plugin.version}</version>
+                        <configuration>
+                            <source>${java.version}</source>
+                            <target>${java.version}</target>
+                        </configuration>
+                    </plugin>
+
+                    <!-- Include generated sources -->
                     <plugin>
                         <artifactId>maven-resources-plugin</artifactId>
-                        <version>2.5</version>
+                        <version>${maven-resources-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>copy-resources</id>
@@ -166,38 +178,6 @@
                         </executions>
                     </plugin>
 
-                    <!-- Maven compiler -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-compiler-plugin</artifactId>
-                        <version>${maven-compiler-plugin.version}</version>
-                        <configuration>
-                            <source>${java.version}</source>
-                            <target>${java.version}</target>
-                        </configuration>
-                    </plugin>
-
-                    <!-- Add Dagger generated sources to the source path. GWT compile needs this. -->
-                    <!--<plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>${build-helper-maven-plugin.version}</version>
-                        <executions>
-                            <execution>
-                                <id>add-source</id>
-                                <phase>generate-sources</phase>
-                                <goals>
-                                    <goal>add-source</goal>
-                                </goals>
-                                <configuration>
-                                    <sources>
-                                        <source>${project.basedir}/target/generated-sources/annotations</source>
-                                    </sources>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
--->
                     <!-- Sign GPG -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
