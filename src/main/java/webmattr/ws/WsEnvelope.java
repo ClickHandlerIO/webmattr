@@ -3,15 +3,35 @@ package webmattr.ws;
 import jsinterop.annotations.JsProperty;
 
 /**
- *
+ * Wasabi Envelope
  */
 public class WsEnvelope {
+    // Direction
+    public static final int IN = 0;
+    public static final int OUT = 1;
+
+    // Encoding
+    public static final int NONE = 0;
+    public static final int GZIP = 1;
+
+    // Format
+    public static final int JSON = 0;
+    public static final int MSGPACK = 1;
+    public static final int XML = 2;
+    public static final int RAW = 9;
+
     @JsProperty(name = "d")
-    private boolean in;
+    private int in;
     @JsProperty(name = "i")
     private int id;
+    @JsProperty(name = "s")
+    private int sequence;
     @JsProperty(name = "c")
     private int code;
+    @JsProperty(name = "e")
+    private int encoding;
+    @JsProperty(name = "f")
+    private int format;
     @JsProperty(name = "t")
     private String type;
     @JsProperty(name = "p")
@@ -20,7 +40,7 @@ public class WsEnvelope {
     public WsEnvelope() {
     }
 
-    public WsEnvelope(boolean in, int id, int code, String type, String payload) {
+    public WsEnvelope(int in, int id, int code, String type, String payload) {
         this.in = in;
         this.id = id;
         this.code = code;
@@ -28,11 +48,21 @@ public class WsEnvelope {
         this.payload = payload;
     }
 
-    public boolean isIn() {
+    public WsEnvelope(int in, int id, int code, int encoding, int format, String type, String payload) {
+        this.in = in;
+        this.id = id;
+        this.code = code;
+        this.encoding = encoding;
+        this.format = format;
+        this.type = type;
+        this.payload = payload;
+    }
+
+    public int isIn() {
         return in;
     }
 
-    public void setIn(boolean in) {
+    public void setIn(int in) {
         this.in = in;
     }
 

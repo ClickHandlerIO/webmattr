@@ -1,15 +1,18 @@
 package webmattr.ws;
 
 import com.google.gwt.user.client.Timer;
+import webmattr.Bus;
 import webmattr.Func;
 import webmattr.JSON;
 import webmattr.Try;
-import webmattr.Bus;
 
 import java.util.*;
 
 /**
- * WebSocket messaging dispatcher.
+ * Wasabi messaging dispatcher.
+ * During the handshake with the other end, the capabilities
+ * of each side is discovered and Wasabi will be the smallest
+ * most efficient mode of transport.
  *
  * @author Clay Molocznik
  */
@@ -120,7 +123,7 @@ public class WsDispatcher {
         bus.publish(new WsEnvelopeEvent(this, envelope));
 
         // Did we get a response?
-        if (!envelope.isIn()) {
+        if (envelope.isIn() != WsEnvelope.IN) {
             final Outgoing call = calls.remove(envelope.getId());
             if (call != null) {
                 Try.silent(call.callback, envelope);
@@ -252,7 +255,7 @@ public class WsDispatcher {
                         String payload,
                         Func.Run1<WsEnvelope> callback,
                         Func.Run timeoutCallback) {
-        final WsEnvelope envelope = new WsEnvelope(true, nextId(), 0, type, payload);
+        final WsEnvelope envelope = new WsEnvelope(WsEnvelope.IN, nextId(), 0, type, payload);
         final Outgoing call = new Outgoing(new Date().getTime(), timeoutMillis, envelope, callback, timeoutCallback);
         send(call);
     }

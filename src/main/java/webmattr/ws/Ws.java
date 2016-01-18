@@ -4,9 +4,9 @@ import com.google.gwt.user.client.Timer;
 import elemental.client.Browser;
 import elemental.events.Event;
 import elemental.html.WebSocket;
-import webmattr.Try;
 import webmattr.Bus;
 import webmattr.Func;
+import webmattr.Try;
 
 /**
  *
@@ -23,7 +23,7 @@ public class Ws {
     private boolean connecting;
     private boolean closing;
     private boolean autoConnect = true;
-    private int connectRetryMillis = 1000;
+    private int connectRetryMillis = 2500;
     private Timer connectTimer;
 
     public Ws(Bus bus,
@@ -92,6 +92,7 @@ public class Ws {
         connecting = false;
         closing = false;
 
+        Try.silent(this::cancelConnectTimer);
         Try.silent(connectedCallback);
     }
 
@@ -101,16 +102,42 @@ public class Ws {
         Try.silent(closedCallback);
 
         if (!autoConnect) {
+            cancelConnectTimer();
             return;
         }
 
-        if (connectTimer == null) {
-//            connectTimer = new Timer() {};
+        ensureCancelTimer();
+    }
+
+    private void ensureCancelTimer() {
+        if (connectTimer != null) {
+            return;
+        }
+
+        connectTimer = new Timer() {
+            @Override
+            public void run() {
+                connect();
+            }
+        };
+        connectTimer.scheduleRepeating(connectRetryMillis);
+    }
+
+    private void cancelConnectTimer() {
+        if (connectTimer != null) {
+            connectTimer.cancel();
+            connectTimer = null;
         }
     }
 
     private native String getData(Event event) /*-{
         return event.data;
+    }-*/;
+
+    private native void wireEventHandler(WebSocket ws, String name, Func.Run1<Event> callback) /*-{
+        ws[name] = function (event) {
+            callback(event);
+        };
     }-*/;
 
     private native void wireOnOpen(WebSocket ws, Func.Run1<Event> callback) /*-{

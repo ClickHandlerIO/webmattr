@@ -2,6 +2,7 @@ package webmattr.react;
 
 import com.google.gwt.core.client.ScriptInjector;
 import jsinterop.annotations.JsMethod;
+import webmattr.resources.Resources;
 
 /**
  *

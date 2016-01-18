@@ -1,8 +1,8 @@
 package webmattr.action;
 
+import webmattr.Bus;
 import webmattr.JSON;
 import webmattr.Try;
-import webmattr.Bus;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
