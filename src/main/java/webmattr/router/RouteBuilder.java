@@ -12,7 +12,7 @@ import java.util.Map;
  */
 public abstract class RouteBuilder {
     @Inject
-    Provider<OnEnterRoute> onEnterProvider;
+    Provider<RouteGatekeeper> routeGatekeeperProvider;
 
     private Route[] routes;
 
@@ -44,11 +44,24 @@ public abstract class RouteBuilder {
         regs.put(proxy.getClass().getName(),
             new Reg(
                 new Route()
-                    .path(proxy.getPath())
-                    .onEnter(onEnterProvider)
+                    .path(proxy.path())
+                    .onEnter((nextState, replaceState) -> {
+                        if (proxy.onEnter(nextState, replaceState)) {
+                            routeGatekeeperProvider.get().onEnter(proxy, nextState, replaceState);
+                        }
+                    })
+                    .onLeave(
+                        () -> {
+                            final Object result = proxy.onLeave();
+                            if (result != null) {
+                                return result;
+                            }
+                            return routeGatekeeperProvider.get().onLeave(proxy);
+                        }
+                    )
                     .component(component.getReactClass()),
-                component.getRouteProxyProvider().get(),
-                component)
+                proxy
+            )
         );
     }
 
@@ -124,8 +137,15 @@ public abstract class RouteBuilder {
             }
             final Route[] childRoutes = new Route[reg.children.size()];
             for (int i = 0; i < reg.children.size(); i++) {
-                childRoutes[i] = reg.children.get(i).route;
+                final Reg child = reg.children.get(i);
+                // Is this child the IndexRoute?
+                if (child.proxy.isIndex()) {
+                    // Set as IndexRoute.
+                    reg.route.indexRoute = child.route;
+                }
+                childRoutes[i] = reg.route;
             }
+            reg.route.childRoutes(childRoutes);
         }
         this.routes = new Route[topLevel.size()];
         for (int i = 0; i < topLevel.size(); i++) {
@@ -158,14 +178,11 @@ public abstract class RouteBuilder {
     protected static class Reg {
         private final Route route;
         private final RouteProxy<?> proxy;
-        private final RouteComponent<?, ?, ?, ?> component;
-
         private List<Reg> children = null;
 
-        public Reg(Route route, RouteProxy<?> proxy, RouteComponent<?, ?, ?, ?> component) {
+        public Reg(Route route, RouteProxy<?> proxy) {
             this.route = route;
             this.proxy = proxy;
-            this.component = component;
         }
 
         private void addChild(Reg child) {

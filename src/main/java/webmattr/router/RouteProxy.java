@@ -14,26 +14,78 @@ public class RouteProxy<T> {
     History history;
     @Inject
     Provider<T> argsProvider;
+    private String path;
+    private boolean index;
+    private RouteProxy parent;
 
     public RouteProxy() {
+    }
+
+    public RouteProxy(String path) {
+        this.path = path;
+    }
+
+    public RouteProxy(RouteProxy parent) {
+        this.parent = parent;
+    }
+
+    public RouteProxy(String path, RouteProxy parent) {
+        this.path = path;
+        this.parent = parent;
+    }
+
+    public RouteProxy(String path, boolean index) {
+        this.path = path;
+        this.index = index;
+    }
+
+    public RouteProxy(String path, RouteProxy parent, boolean index) {
+        this.path = path;
+        this.parent = parent;
+        this.index = index;
     }
 
     /**
      * @return
      */
     protected String path() {
-        return "";
+        return path;
     }
 
     /**
      * @return
      */
     protected RouteProxy parent() {
-        return null;
+        return parent;
     }
 
-    public String getPath() {
-        return path();
+    /**
+     * @return
+     */
+    public boolean isIndex() {
+        return index;
+    }
+
+    /**
+     * @param nextState
+     * @param replaceState
+     */
+    protected boolean onEnter(RouteProps nextState, ReplaceStateFunction replaceState) {
+        final T args = argsProvider.get();
+        React.assign(args, nextState.getParams());
+        return onEnter(args, nextState, replaceState);
+    }
+
+    /**
+     * @param nextState
+     * @param replaceState
+     */
+    protected boolean onEnter(T args, RouteProps nextState, ReplaceStateFunction replaceState) {
+        return true;
+    }
+
+    protected Object onLeave() {
+        return null;
     }
 
     public Provider<T> getArgsProvider() {
@@ -63,6 +115,10 @@ public class RouteProxy<T> {
 
     public void handle(RouteProps props) {
 
+    }
+
+    public boolean is(RouteProxy proxy) {
+        return proxy != null && proxy.getClass().getName().equals(getClass().getName());
     }
 
     protected String parentPath() {
@@ -122,15 +178,5 @@ public class RouteProxy<T> {
         }
 
         return sb.toString();
-    }
-
-    private class PathBuilder {
-        private String spec;
-
-        public PathBuilder(String spec) {
-            this.spec = spec;
-        }
-
-
     }
 }

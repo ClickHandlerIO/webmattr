@@ -5,8 +5,6 @@ import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 import webmattr.react.Component;
 
-import javax.inject.Provider;
-
 /**
  *
  */
@@ -80,6 +78,9 @@ public class Route {
     @JsProperty
     public OnEnterRoute onEnter;
 
+    @JsProperty
+    public OnLeaveRoute onLeave;
+
     @JsIgnore
     public Route path(String path) {
         this.path = path;
@@ -147,8 +148,8 @@ public class Route {
     }
 
     @JsIgnore
-    public Route onEnter(Provider<OnEnterRoute> onEnterProvider) {
-        this.onEnter = onEnterProvider != null ? onEnterProvider.get() : null;
+    public Route onLeave(OnLeaveRoute onLeave) {
+        this.onLeave = onLeave;
         return this;
     }
 }

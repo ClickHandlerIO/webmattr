@@ -75,6 +75,54 @@ public class Try {
         }
     }
 
+    public static <T> CallResult<T> call(Func.Call<T> callback) {
+        if (callback == null) {
+            return new CallResult<>(null, null);
+        }
+        try {
+            return new CallResult<>(callback.call(), null);
+        } catch (Throwable e) {
+            // Ignore.
+            return new CallResult<>(null, e);
+        }
+    }
+
+    public static class CallResult<T> {
+        private final T result;
+        private final Throwable e;
+
+        public CallResult() {
+            this(null, null);
+        }
+
+        public CallResult(T result) {
+            this(result, null);
+        }
+
+        public CallResult(Throwable e) {
+            this(null, e);
+        }
+
+        public CallResult(T result, Throwable e) {
+            this.result = result;
+            this.e = e;
+        }
+
+        public CallResult<T> success(Func.Run1<T> success) {
+            if (e == null && success != null) {
+                success.run(result);
+            }
+            return this;
+        }
+
+        public CallResult<T> failure(Func.Run1<Throwable> failure) {
+            if (e != null && failure != null) {
+                failure.run(e);
+            }
+            return this;
+        }
+    }
+
     public static class RunResult {
         private final Throwable e;
 
