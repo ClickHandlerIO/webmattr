@@ -14,7 +14,7 @@ public abstract class ModuleLoader {
     private final String prefix;
     @Inject
     Provider<RouteGatekeeper> routeGatekeeperProvider;
-    private RouteBuilder routeBuilder;
+    private RoutesBuilder routesBuilder;
     private Location location;
     private RoutesCallback callback;
     private boolean registeredModulesCalled;
@@ -104,8 +104,8 @@ public abstract class ModuleLoader {
         } else {
             // Pass owned routes straight through.
             getRouteBuilder(value -> {
-                if (routeBuilder != null) {
-                    callback.run(null, routeBuilder.getRoutes());
+                if (routesBuilder != null) {
+                    callback.run(null, routesBuilder.getRoutes());
                 } else {
                     callback.run(null, new Route[0]);
                 }
@@ -116,9 +116,9 @@ public abstract class ModuleLoader {
     /**
      * @param callback
      */
-    protected void getRouteBuilder(Func.Run1<RouteBuilder> callback) {
-        if (routeBuilder != null) {
-            callback.run(routeBuilder);
+    protected void getRouteBuilder(Func.Run1<RoutesBuilder> callback) {
+        if (routesBuilder != null) {
+            callback.run(routesBuilder);
         } else {
             loadRouteBuilder(routeBuilder -> {
                 initRouteBuilder(routeBuilder);
@@ -128,18 +128,18 @@ public abstract class ModuleLoader {
     }
 
     /**
-     * @param routeBuilder
+     * @param routesBuilder
      */
-    protected void initRouteBuilder(RouteBuilder routeBuilder) {
-        this.routeBuilder = routeBuilder;
+    protected void initRouteBuilder(RoutesBuilder routesBuilder) {
+        this.routesBuilder = routesBuilder;
 
-        if (routeBuilder != null) {
-            routeBuilder.init();
+        if (routesBuilder != null) {
+            routesBuilder.init();
         }
     }
 
     /**
      * @param callback
      */
-    protected abstract void loadRouteBuilder(Func.Run1<RouteBuilder> callback);
+    protected abstract void loadRouteBuilder(Func.Run1<RoutesBuilder> callback);
 }

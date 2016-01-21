@@ -1,7 +1,7 @@
 package webmattr.router;
 
 import webmattr.Func;
-import webmattr.react.React;
+import webmattr.Reflection;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -104,7 +104,7 @@ public class RouteProxy<T> {
      */
     protected boolean onEnter(RouteProps nextState, ReplaceStateFunction replaceState) {
         final T args = argsProvider.get();
-        React.assign(args, nextState.getParams());
+        Reflection.assign(args, nextState.getParams());
         return onEnter(args, nextState, replaceState);
     }
 
@@ -284,7 +284,7 @@ public class RouteProxy<T> {
             }
 
             // Grab value by prop name.
-            Object value = React.get(props, part);
+            Object value = Reflection.get(props, part);
             if (value != null) {
                 sb.append(String.valueOf(value));
             }

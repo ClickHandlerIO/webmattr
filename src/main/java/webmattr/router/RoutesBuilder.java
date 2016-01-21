@@ -1,5 +1,7 @@
 package webmattr.router;
 
+import webmattr.Reflection;
+
 import javax.inject.Inject;
 import javax.inject.Provider;
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ import java.util.Map;
  *
  * @author Clay Molocznik
  */
-public abstract class RouteBuilder {
+public abstract class RoutesBuilder {
     private final Map<String, Reg> regs = new HashMap<>();
     @Inject
     Provider<RouteGatekeeper> routeGatekeeperProvider;
@@ -34,7 +36,14 @@ public abstract class RouteBuilder {
     /**
      * @return
      */
-    protected abstract void addComponents();
+    protected void registerComponents() {
+        // Sniff out injected RouteComponents.
+        Reflection.iterate(this, (name, value) -> {
+            if (RouteComponent.is(value)) {
+                add((RouteComponent) value);
+            }
+        });
+    }
 
     protected <R extends RouteProxy<A>, A, P extends RouteProps<A>, S> void add(RouteComponent<R, A, P, S> component) {
         // Instantiate RouteProxy.
@@ -69,7 +78,8 @@ public abstract class RouteBuilder {
         if (routes != null) {
             return;
         }
-        addComponents();
+
+        registerComponents();
         buildRoutes();
     }
 

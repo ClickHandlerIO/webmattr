@@ -3,8 +3,8 @@ package webmattr.router;
 /**
  *
  */
-public class ExplicitRouteBuilder extends RouteBuilder {
-    public ExplicitRouteBuilder(Route[] routes) {
+public class ExplicitRoutesBuilder extends RoutesBuilder {
+    public ExplicitRoutesBuilder(Route[] routes) {
         setRoutes(routes);
     }
 
@@ -14,6 +14,6 @@ public class ExplicitRouteBuilder extends RouteBuilder {
     }
 
     @Override
-    protected void addComponents() {
+    protected void registerComponents() {
     }
 }

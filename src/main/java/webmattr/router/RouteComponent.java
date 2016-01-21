@@ -1,5 +1,7 @@
 package webmattr.router;
 
+import jsinterop.annotations.JsProperty;
+import webmattr.Reflection;
 import webmattr.react.Component;
 import webmattr.react.React;
 import webmattr.react.ReactComponent;
@@ -11,13 +13,18 @@ import javax.inject.Provider;
  *
  */
 public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends RouteProps<A>, S> extends Component<P, S> implements HasRouter {
+    @JsProperty
+    private final boolean __webmattr_route_component__$$__ = true;
     @Inject
     Provider<A> argsProvider;
     @Inject
     Provider<R> routeProxyProvider;
-
     public RouteComponent() {
     }
+
+    public static native boolean is(Object obj) /*-{
+        return obj && obj['__webmattr_route_component__$$__'];
+    }-*/;
 
     public Provider<A> getArgsProvider() {
         return argsProvider;
@@ -48,9 +55,9 @@ public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends Route
         // Create new args.
         final A args = argsProvider.get();
         // Copy from routeParams into args.
-        React.assign(args, React.get(props, "routeParams"));
+        Reflection.assign(args, Reflection.get(props, "routeParams"));
         // Replace routeParams with args.
-        React.set(props, "routeParams", args);
+        Reflection.set(props, "routeParams", args);
     }
 
     @Override

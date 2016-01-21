@@ -33,7 +33,7 @@ public abstract class RootModule extends ModuleLoader {
     }
 
     @Override
-    protected void loadRouteBuilder(Func.Run1<RouteBuilder> run1) {
+    protected void loadRouteBuilder(Func.Run1<RoutesBuilder> run1) {
         run1.run(null);
     }
 

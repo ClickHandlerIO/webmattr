@@ -7,10 +7,14 @@ import elemental.html.Window;
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
-import webmattr.Func;
-import webmattr.action.*;
-import webmattr.dom.DOM;
 import webmattr.Bus;
+import webmattr.Func;
+import webmattr.Reflection;
+import webmattr.action.AbstractAction;
+import webmattr.action.ActionCall;
+import webmattr.action.ActionCalls;
+import webmattr.action.ActionDispatcher;
+import webmattr.dom.DOM;
 import webmattr.router.History;
 
 import javax.inject.Inject;
@@ -22,10 +26,15 @@ import javax.inject.Provider;
  */
 public abstract class Component<P, S> {
 
+    public static native boolean is(Object obj) /*-{
+        return obj && obj['__webmattr_component__$$__'];
+    }-*/;
+
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
-
+    @JsProperty
+    private final boolean __webmattr_component__$$__ = true;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Lifecycle
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -145,7 +154,7 @@ public abstract class Component<P, S> {
      * @return
      */
     public P getProps(ReactComponent $this) {
-        return React.copy(React.getProps($this), getPropsType());
+        return Reflection.copy(React.getProps($this), getPropsType());
     }
 
     /**
@@ -153,7 +162,7 @@ public abstract class Component<P, S> {
      * @return
      */
     public S getState(ReactComponent $this) {
-        return React.copy(React.getState($this), getStateType());
+        return Reflection.copy(React.getState($this), getStateType());
     }
 
     /**
@@ -242,12 +251,12 @@ public abstract class Component<P, S> {
     private void componentWillMount0(final ReactComponent $this) {
         if ($this != null) {
             // Register event handlers.
-            React.set($this, React.ACTION_CALLS, new ActionCalls());
-            React.set($this, React.ACTION, action());
-            React.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
-            React.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
-            React.set($this, React.GET_STATE, (Func.Call<S>) () -> getState($this));
-            React.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> React.get($this, name));
+            Reflection.set($this, React.ACTION_CALLS, new ActionCalls());
+            Reflection.set($this, React.ACTION, action());
+            Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
+            Reflection.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
+            Reflection.set($this, React.GET_STATE, (Func.Call<S>) () -> getState($this));
+            Reflection.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> Reflection.get($this, name));
         }
         componentWillMount($this, getProps($this), getState($this));
     }
@@ -273,10 +282,10 @@ public abstract class Component<P, S> {
         ReactComponent $this,
         Provider<H> action
     ) {
-        ActionCalls calls = React.get($this, React.ACTION_CALLS);
+        ActionCalls calls = Reflection.get($this, React.ACTION_CALLS);
         if (calls == null) {
             calls = new ActionCalls();
-            React.set($this, React.ACTION_CALLS, calls);
+            Reflection.set($this, React.ACTION_CALLS, calls);
         }
 
         final ActionCall<IN, OUT> call = ActionDispatcher.action(action);
@@ -296,7 +305,7 @@ public abstract class Component<P, S> {
     @JsIgnore
     private void componentDidMount0(final ReactComponent<P, S> $this) {
         if ($this != null) {
-            React.set($this, React.EVENT_BUS_REGISTRATIONS, new Object());
+            Reflection.set($this, React.EVENT_BUS_REGISTRATIONS, new Object());
         }
 
         componentDidMount($this);
@@ -412,9 +421,9 @@ public abstract class Component<P, S> {
         }
 
         // Set key manually.
-        final Object key = React.get(props, "key");
+        final Object key = Reflection.get(props, "key");
         if (key == null) {
-            React.set(props, "key", ChildCounter.get().newKey());
+            Reflection.set(props, "key", ChildCounter.get().newKey());
         }
 
         // Return props.
@@ -529,12 +538,12 @@ public abstract class Component<P, S> {
     public static class ContextTypes {
         @JsIgnore
         public <T> T get(String name) {
-            return React.get(this, name);
+            return Reflection.get(this, name);
         }
 
         @JsIgnore
         public <T> void set(String name, T value) {
-            React.set(this, name, value);
+            Reflection.set(this, name, value);
         }
     }
 }

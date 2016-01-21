@@ -2,6 +2,7 @@ package webmattr.react;
 
 import jsinterop.annotations.JsProperty;
 import webmattr.Func;
+import webmattr.Reflection;
 
 /**
  *
@@ -20,24 +21,24 @@ public class Ref<T> {
     }
 
     public static <T> Ref<T> make() {
-        return new Ref<>(React.createShortUID());
+        return new Ref<>(Reflection.createShortUID());
     }
 
     public void init(ReactComponent $this, Func.Run1<T> callback) {
         final T ref = get($this);
-        final Boolean inited = React.get(ref, INIT_PROP_NAME);
+        final Boolean inited = Reflection.get(ref, INIT_PROP_NAME);
         if (inited == null || !inited) {
-            React.set(ref, INIT_PROP_NAME, true);
+            Reflection.set(ref, INIT_PROP_NAME, true);
             callback.run(ref);
         }
     }
 
     public T get(ReactComponent $this) {
-        final T value = React.get($this, name);
+        final T value = Reflection.get($this, name);
         if (value != null) {
             return value;
         }
-        return React.get(React.get($this, "refs"), name);
+        return Reflection.get(Reflection.get($this, "refs"), name);
     }
 
     public void get(ReactComponent $this, Func.Run1<T> callback) {
@@ -48,12 +49,12 @@ public class Ref<T> {
     }
 
     public void set(ReactComponent $this, T value) {
-        React.set($this, name, value);
+        Reflection.set($this, name, value);
     }
 
     public Func.Run1<T> pipe(ReactComponent $this, Func.Run1<T> callback) {
         return (value) -> {
-            React.set($this, name, value);
+            Reflection.set($this, name, value);
             if (callback != null && value != null) {
                 callback.run(value);
             }
