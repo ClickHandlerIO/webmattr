@@ -3,5 +3,5 @@ package webmattr.router;
 /**
  *
  */
-public abstract class SimpleRouteComponent<P extends RouteProps<Object>, S> extends RouteComponent<SimpleRouteProxy, Object, P, S> {
+public abstract class SimpleRouteComponent<R extends SimpleRouteProxy, P extends RouteProps<Object>, S> extends RouteComponent<R, Object, P, S> {
 }

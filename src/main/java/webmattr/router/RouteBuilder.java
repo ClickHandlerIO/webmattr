@@ -8,26 +8,17 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Constructs ReactRouter Route configuration based on RouteComponents
+ * and the RouteProxies they are mapped to.
  *
+ * @author Clay Molocznik
  */
 public abstract class RouteBuilder {
+    private final Map<String, Reg> regs = new HashMap<>();
     @Inject
     Provider<RouteGatekeeper> routeGatekeeperProvider;
 
     private Route[] routes;
-
-    private Map<String, Reg> regs = new HashMap<>();
-
-    protected void construct(Location location) {
-        build(location);
-        constructTree();
-    }
-
-    /**
-     * @param location
-     * @return
-     */
-    protected abstract void build(Location location);
 
     /**
      * @return
@@ -36,7 +27,16 @@ public abstract class RouteBuilder {
         return routes;
     }
 
-    protected <R extends RouteProxy<A>, A, P extends RouteProps<A>, S> void register(RouteComponent<R, A, P, S> component) {
+    void setRoutes(Route[] routes) {
+        this.routes = routes;
+    }
+
+    /**
+     * @return
+     */
+    protected abstract void addComponents();
+
+    protected <R extends RouteProxy<A>, A, P extends RouteProps<A>, S> void add(RouteComponent<R, A, P, S> component) {
         // Instantiate RouteProxy.
         final RouteProxy<A> proxy = component.getRouteProxyProvider().get();
 
@@ -65,7 +65,15 @@ public abstract class RouteBuilder {
         );
     }
 
-    protected void constructTree() {
+    void init() {
+        if (routes != null) {
+            return;
+        }
+        addComponents();
+        buildRoutes();
+    }
+
+    void buildRoutes() {
         // Init top level Reg list.
         // These Routes will be the ones supplied.
         // All other's will be descendants of these.
@@ -75,12 +83,15 @@ public abstract class RouteBuilder {
             // Get the parent RouteProxy.
             RouteProxy parent = reg.proxy.parent();
 
+            final String proxyName = reg.proxy.getClass().getName();
+
             // Is current Reg a child?
             if (parent != null) {
-                Reg parentReg = regs.get(parent.getClass().getName());
+                final String parentProxyClassName = parent.getClass().getName();
+                Reg parentReg = regs.get(parentProxyClassName);
                 if (parentReg == null) {
                     String parentPath = parent.path();
-                    if (parentPath == null) {
+                    if (parentPath == null || parentPath.isEmpty()) {
                         parentPath = "";
                     } else if (!parentPath.startsWith("/")) {
                         parent = parent.parent();
@@ -92,7 +103,11 @@ public abstract class RouteBuilder {
                                 // Prepend next parent path if necessary.
                                 String nextParentPath = parent.path();
                                 if (nextParentPath != null) {
-                                    parentPath = nextParentPath + "/" + parentPath;
+                                    if (nextParentPath.endsWith("/")) {
+                                        parentPath = nextParentPath + parentPath;
+                                    } else {
+                                        parentPath = nextParentPath + "/" + parentPath;
+                                    }
                                 }
                             }
                             parentReg = regs.get(parent.getClass().getName());
@@ -113,7 +128,11 @@ public abstract class RouteBuilder {
                     }
 
                     // Prepend the transparent parent's path to ReactRouter Route.
-                    reg.route.path(parentPath + "/" + currentPath);
+                    if (parentPath.equals("/")) {
+                        reg.route.path(parentPath + currentPath);
+                    } else {
+                        reg.route.path(parentPath + "/" + currentPath);
+                    }
                 }
                 // Was a parent Reg found?
                 if (parentReg != null) {
@@ -130,7 +149,7 @@ public abstract class RouteBuilder {
             }
         }
 
-        // Let's build ReactRouter Routes.
+        // Let's addComponents ReactRouter Routes.
         for (Reg reg : regs.values()) {
             if (reg.children == null || reg.children.isEmpty()) {
                 continue;
@@ -143,7 +162,7 @@ public abstract class RouteBuilder {
                     // Set as IndexRoute.
                     reg.route.indexRoute = child.route;
                 }
-                childRoutes[i] = reg.route;
+                childRoutes[i] = child.route;
             }
             reg.route.childRoutes(childRoutes);
         }
@@ -153,29 +172,7 @@ public abstract class RouteBuilder {
         }
     }
 
-    /**
-     * @param location
-     * @param callback
-     */
-    public void call(Location location, RouteCallback callback) {
-        if (routes == null) {
-            construct(location);
-        }
-        callback.run(null, routes != null && routes.length > 0 ? routes[0] : null);
-    }
-
-    /**
-     * @param location
-     * @param callback
-     */
-    public void call(Location location, RoutesCallback callback) {
-        if (routes == null) {
-            construct(location);
-        }
-        callback.run(null, routes);
-    }
-
-    protected static class Reg {
+    private final static class Reg {
         private final Route route;
         private final RouteProxy<?> proxy;
         private List<Reg> children = null;

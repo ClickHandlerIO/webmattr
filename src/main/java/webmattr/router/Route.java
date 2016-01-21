@@ -78,6 +78,9 @@ public class Route {
     @JsProperty
     public OnEnterRoute onEnter;
 
+    /**
+     *
+     */
     @JsProperty
     public OnLeaveRoute onLeave;
 

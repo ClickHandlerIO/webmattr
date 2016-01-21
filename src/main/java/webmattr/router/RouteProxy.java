@@ -5,40 +5,72 @@ import webmattr.react.React;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Proxy to an actual Route / Component(s).
+ * Proxy to an actual RouteComponent and Route configuration object.
  */
 public class RouteProxy<T> {
+    // Inject history.
     @Inject
     History history;
+    // Inject Args Provider.
     @Inject
     Provider<T> argsProvider;
+
+    // Path of this proxy.
     private String path;
+    // Is it an "index" or "/" route of it's parent?
     private boolean index;
+    // Parent RouteProxy.
     private RouteProxy parent;
 
+    private String memoizedParentPath;
+
+    /**
+     *
+     */
     public RouteProxy() {
     }
 
+    /**
+     * @param path
+     */
     public RouteProxy(String path) {
         this.path = path;
     }
 
+    /**
+     * @param parent
+     */
     public RouteProxy(RouteProxy parent) {
         this.parent = parent;
     }
 
+    /**
+     * @param path
+     * @param parent
+     */
     public RouteProxy(String path, RouteProxy parent) {
         this.path = path;
         this.parent = parent;
     }
 
+    /**
+     * @param path
+     * @param index
+     */
     public RouteProxy(String path, boolean index) {
         this.path = path;
         this.index = index;
     }
 
+    /**
+     * @param path
+     * @param parent
+     * @param index
+     */
     public RouteProxy(String path, RouteProxy parent, boolean index) {
         this.path = path;
         this.parent = parent;
@@ -84,18 +116,30 @@ public class RouteProxy<T> {
         return true;
     }
 
+    /**
+     * @return
+     */
     protected Object onLeave() {
         return null;
     }
 
+    /**
+     * @return
+     */
     public Provider<T> getArgsProvider() {
         return argsProvider;
     }
 
+    /**
+     *
+     */
     public void go() {
         go(null);
     }
 
+    /**
+     * @param propsCallback
+     */
     public void go(Func.Run1<T> propsCallback) {
         final T props = getArgsProvider().get();
         if (propsCallback != null) {
@@ -103,42 +147,108 @@ public class RouteProxy<T> {
         }
 
         final String path = buildPath(props);
+        String pathSpec = path();
+        if (pathSpec == null) {
+            pathSpec = "";
+        }
 
-        if (path.startsWith("/")) {
-            history.push(path);
+        // Do we have an absolute path?
+        if (pathSpec.startsWith("/") || path.startsWith("/")) {
+            history.push(path.startsWith("/") ? path : "/" + path);
             return;
         }
 
+        // Get parent path.
         final String parentPath = parentPath();
-        history.push(parentPath + path);
+
+        if (path.isEmpty()) {
+            history.push(parentPath);
+        } else if (parentPath.endsWith("/")) {
+            history.push(parentPath + path);
+        } else {
+            history.push(parentPath + "/" + path);
+        }
     }
 
+    /**
+     * @param props
+     */
     public void handle(RouteProps props) {
 
     }
 
+    /**
+     * @param proxy
+     * @return
+     */
     public boolean is(RouteProxy proxy) {
         return proxy != null && proxy.getClass().getName().equals(getClass().getName());
     }
 
+    /**
+     * @return
+     */
     protected String parentPath() {
-        final RouteProxy parent = parent();
-        if (parent == null) {
-            return "/";
+        if (memoizedParentPath != null) {
+            return memoizedParentPath;
         }
-        final String parentPath = parent.path();
 
-        if (parentPath == null) {
-            return "/";
-        } else {
-            if (!parentPath.endsWith("/")) {
-                return parentPath + "/";
-            } else {
-                return parentPath;
-            }
+        final List<RouteProxy> ancesters = new ArrayList<>();
+
+        RouteProxy parent = parent();
+        if (parent == null) {
+            return "";
         }
+
+        while (parent != null) {
+            ancesters.add(0, parent);
+
+            String parentPath = parent.path();
+            if (parentPath == null) {
+                parentPath = "";
+            }
+
+            if (parentPath.startsWith("/")) {
+                break;
+            }
+
+            parent = parent.parent();
+        }
+
+        final StringBuilder sb = new StringBuilder();
+
+        char lastChar = ' ';
+        for (int i = 0; i < ancesters.size(); i++) {
+            final RouteProxy ancestor = ancesters.get(i);
+            String parentPath = ancestor.path();
+            if (parentPath == null) {
+                parentPath = "";
+            }
+            parentPath = parentPath.trim();
+
+            if (parentPath.length() > 1 && parentPath.endsWith("/")) {
+                parentPath = parentPath.substring(0, parentPath.length() - 1);
+            }
+
+            if (parentPath.isEmpty()) {
+                continue;
+            }
+
+            if (lastChar != '/' && !parentPath.startsWith("/")) {
+                sb.append("/");
+            }
+            sb.append(parentPath);
+
+            lastChar = parentPath.charAt(parentPath.length() - 1);
+        }
+
+        return memoizedParentPath = sb.toString();
     }
 
+    /**
+     * @param props
+     * @return
+     */
     protected String buildPath(Object props) {
         String p = path();
         if (p == null || p.isEmpty()) {
@@ -157,11 +267,14 @@ public class RouteProxy<T> {
         final StringBuilder sb = new StringBuilder();
 
         for (int i = 0; i < parts.length; i++) {
+            String part = parts[i].trim();
+            if (part.isEmpty()) {
+                continue;
+            }
+
             if (i > 0) {
                 sb.append("/");
             }
-
-            String part = parts[i];
 
             if (part.startsWith(":")) {
                 part = part.substring(1);

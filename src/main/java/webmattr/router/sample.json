@@ -1,0 +1,35 @@
+{
+  "path": "/",
+  "children": [
+    {
+      "isModule": true,
+      "path": "auth",
+      "children": [
+        {
+          "path": "inbox"
+        },
+        {
+          "path": "newmessage"
+        }
+      ]
+    },
+    {
+      "isModule": true,
+      "path": "app",
+      "children": [
+        {
+          "isModule": true,
+          "path": "messaging",
+          "children": [
+            {
+              "path": "inbox"
+            },
+            {
+              "path": "newmessage"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
