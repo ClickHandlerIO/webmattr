@@ -6,6 +6,10 @@ import com.google.gwt.user.client.Timer;
  *
  */
 public class Try {
+    /**
+     *
+     * @param callback
+     */
     public static void later(Func.Run callback) {
         if (callback == null) {
             return;

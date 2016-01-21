@@ -9,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Proxy to an actual RouteComponent and Route configuration object.
+ * Proxy to an actual RouteComponent and React Router Route configuration object.
+ *
+ * @author Clay Molocznik
  */
 public class RouteProxy<T> {
     // Inject history.
@@ -32,20 +34,21 @@ public class RouteProxy<T> {
      *
      */
     public RouteProxy() {
+        this(null, null, false);
     }
 
     /**
      * @param path
      */
     public RouteProxy(String path) {
-        this.path = path;
+        this(path, null, false);
     }
 
     /**
      * @param parent
      */
     public RouteProxy(RouteProxy parent) {
-        this.parent = parent;
+        this(null, parent, false);
     }
 
     /**
@@ -53,8 +56,7 @@ public class RouteProxy<T> {
      * @param parent
      */
     public RouteProxy(String path, RouteProxy parent) {
-        this.path = path;
-        this.parent = parent;
+        this(path, parent, false);
     }
 
     /**
@@ -62,8 +64,7 @@ public class RouteProxy<T> {
      * @param index
      */
     public RouteProxy(String path, boolean index) {
-        this.path = path;
-        this.index = index;
+        this(path, null, index);
     }
 
     /**
@@ -72,6 +73,16 @@ public class RouteProxy<T> {
      * @param index
      */
     public RouteProxy(String path, RouteProxy parent, boolean index) {
+        if (path == null) {
+            // Default path to class name minus the "Route" suffix.
+            String name = getClass().getName().toLowerCase();
+            if (name.endsWith("route")) {
+                name = name.substring(0, name.length() - 5);
+            }
+            final String[] parts = name.split("[.]");
+            path = parts[parts.length - 1];
+        }
+
         this.path = path;
         this.parent = parent;
         this.index = index;
@@ -80,14 +91,14 @@ public class RouteProxy<T> {
     /**
      * @return
      */
-    protected String path() {
+    public String path() {
         return path;
     }
 
     /**
      * @return
      */
-    protected RouteProxy parent() {
+    public RouteProxy parent() {
         return parent;
     }
 
@@ -188,7 +199,7 @@ public class RouteProxy<T> {
     /**
      * @return
      */
-    protected String parentPath() {
+    public String parentPath() {
         if (memoizedParentPath != null) {
             return memoizedParentPath;
         }

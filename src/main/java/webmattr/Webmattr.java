@@ -7,7 +7,7 @@ import webmattr.react.React;
  *
  */
 public class Webmattr {
-    public void init() {
+    public static void init() {
         ZLib.init();
         React.init();
     }

@@ -9,7 +9,10 @@ import javax.inject.Provider;
 import java.util.Date;
 
 /**
+ * Actions provide a command pattern and a standard Request/Reply
+ * asynchronous messaging pattern for virtually any sort of task.
  *
+ * @author Clay Molocznik
  */
 public abstract class AbstractAction<IN, OUT> {
     private Bus bus;
