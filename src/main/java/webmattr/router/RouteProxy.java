@@ -80,7 +80,11 @@ public class RouteProxy<T> {
             if (name.endsWith("route")) {
                 name = name.substring(0, name.length() - 5);
             }
-            final String[] parts = name.split("[.]");
+            String[] parts = name.split("[.]");
+            path = parts[parts.length - 1];
+
+            // Handle nested classes.
+            parts = path.split("[$]");
             path = parts[parts.length - 1];
         }
 
@@ -360,10 +364,15 @@ public class RouteProxy<T> {
         }
 
         Reflection.iterate(query, (name, value) -> {
+            // Ignore?
             if (value == null) {
                 return;
             }
 
+            // Decode urlencoded string value.
+            value = URL.decode(value.toString());
+
+            // Smart set prop.
             smartSet(args, name, value);
         });
     }
