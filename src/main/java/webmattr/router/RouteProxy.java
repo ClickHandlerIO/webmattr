@@ -1,5 +1,6 @@
 package webmattr.router;
 
+import com.google.gwt.http.client.URL;
 import webmattr.Func;
 import webmattr.Reflection;
 
@@ -87,6 +88,49 @@ public class RouteProxy<T> {
         this.parent = parent;
         this.index = index;
     }
+
+    private static native boolean smartSet(Object target, String name, Object value) /*-{
+        if (value == null) {
+            return true;
+        }
+        var toStringValue = value.toString();
+
+        if (target && name) {
+            var defaultValue = target[name];
+
+            switch (typeof(defaultValue)) {
+                case "boolean":
+                    toStringValue = toStringValue.toLowerCase();
+                    target[name] = toStringValue == "true" || toStringValue == "1" || toStringValue == "yes" || toStringValue == "y";
+                    break;
+                case "string":
+                    target[name] = toStringValue;
+                    break;
+                case "number":
+                    if (toStringValue.indexOf(".") > -1) {
+                        try {
+                            target[name] = parseFloat(toStringValue);
+                        } catch (e) {
+                            // Failed.
+                            return false;
+                        }
+                    } else {
+                        try {
+                            target[name] = parseInt(toStringValue);
+                        } catch (e) {
+                            // Failed.
+                            return false;
+                        }
+                    }
+                    break;
+
+                case "undefined":
+                    target[name] = toStringValue;
+                    break;
+            }
+        }
+        return true;
+    }-*/;
 
     /**
      * @return
@@ -261,46 +305,66 @@ public class RouteProxy<T> {
      * @return
      */
     protected String buildPath(Object props) {
-        String p = path();
-        if (p == null || p.isEmpty()) {
-            return "";
-        }
-        if (p.startsWith("/")) {
-            p = p.substring(1);
-        }
-        final String path = p;
-        final String[] parts = path.split("/");
-
-        if (parts.length < 2) {
-            return path;
-        }
-
+        final String path = path();
         final StringBuilder sb = new StringBuilder();
 
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i].trim();
-            if (part.isEmpty()) {
-                continue;
+        Reflection.iterate(props, (name, value) -> {
+            if (value == null) {
+                return;
             }
 
-            if (i > 0) {
-                sb.append("/");
+            if (sb.length() > 0) {
+                sb.append("&");
             }
 
-            if (part.startsWith(":")) {
-                part = part.substring(1);
-            } else {
-                sb.append(part);
-                continue;
-            }
+            sb.append(name).append("=").append(URL.encode(String.valueOf(value)));
+        });
 
-            // Grab value by prop name.
-            Object value = Reflection.get(props, part);
-            if (value != null) {
-                sb.append(String.valueOf(value));
-            }
+        if (sb.length() > 0) {
+            return path + "?" + sb.toString();
+        } else {
+            return path;
+        }
+    }
+
+    public T toArgs(Location location) {
+        final T args = argsProvider.get();
+
+        if (location == null) {
+            return args;
         }
 
-        return sb.toString();
+        final Object query = location.getQuery();
+        if (query == null) {
+            return args;
+        }
+
+        mergeArgs(args, query);
+        return args;
+    }
+
+    public T toArgs(Object query) {
+        final T args = argsProvider.get();
+
+        if (query == null) {
+            return args;
+        }
+
+        mergeArgs(args, query);
+        return args;
+    }
+
+    public void mergeArgs(T args, Object query) {
+        if (args == null) {
+            return;
+        }
+
+        Reflection.iterate(query, (name, value) -> {
+            if (value == null) {
+                return;
+            }
+
+            smartSet(args, name, value);
+        });
     }
 }
