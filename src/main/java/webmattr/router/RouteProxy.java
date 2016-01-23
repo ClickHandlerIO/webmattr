@@ -28,7 +28,7 @@ public class RouteProxy<T> {
     private boolean index;
     // Parent RouteProxy.
     private RouteProxy parent;
-
+    //
     private String memoizedParentPath;
 
     /**
@@ -77,15 +77,36 @@ public class RouteProxy<T> {
         if (path == null) {
             // Default path to class name minus the "Route" suffix.
             String name = getClass().getName().toLowerCase();
+
+            // Remove Route from the end.
             if (name.endsWith("route")) {
                 name = name.substring(0, name.length() - 5);
             }
+
+            // Split based off of Java class path.
             String[] parts = name.split("[.]");
+
+            // Pick last name.
             path = parts[parts.length - 1];
 
-            // Handle nested classes.
-            parts = path.split("[$]");
-            path = parts[parts.length - 1];
+            if (path.endsWith("$")) {
+                path = path.substring(0, path.length() - 1);
+
+                // Remove 'component' from the end?
+                if (path.endsWith("component")) {
+                    path = path.substring(0, path.length() - 9);
+                }
+                // Remove 'page' from the end?
+                else if (path.endsWith("page")) {
+                    path = path.substring(0, path.length() - 4);
+                }
+            } else {
+                // Handle nested classes.
+                parts = path.split("[$]");
+
+                // Pick last part.
+                path = parts[parts.length - 1];
+            }
         }
 
         this.path = path;

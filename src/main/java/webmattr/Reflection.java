@@ -17,18 +17,19 @@ public class Reflection {
     }-*/;
 
     /**
-     *
      * @param obj
      * @param name
      * @param <T>
      * @return
      */
     public static native <T> T get(Object obj, String name) /*-{
+        if (!obj) {
+            return null;
+        }
         return obj[name];
     }-*/;
 
     /**
-     *
      * @param obj
      * @param name
      * @param value
@@ -36,22 +37,26 @@ public class Reflection {
      * @return
      */
     public static native <T> T set(Object obj, String name, Object value) /*-{
+        if (!obj) {
+            return null;
+        }
         return obj[name] = value;
     }-*/;
 
     /**
-     *
      * @param obj
      * @param name
      * @param <T>
      * @return
      */
     public static native <T> T delete(Object obj, String name) /*-{
+        if (!obj) {
+            return null;
+        }
         delete obj[name];
     }-*/;
 
     /**
-     *
      * @param obj
      * @param nativeClass
      */
@@ -61,7 +66,6 @@ public class Reflection {
     }
 
     /**
-     *
      * @param obj
      * @param nativeClass
      */
@@ -78,7 +82,6 @@ public class Reflection {
     }-*/;
 
     /**
-     *
      * @param nativeObject
      * @param javaPrototype
      * @param <T>
@@ -98,11 +101,13 @@ public class Reflection {
     }-*/;
 
     public static native void assign(Object target, Object sources) /*-{
+        if (!target) {
+            return;
+        }
         Object.assign(target, sources);
     }-*/;
 
     /**
-     *
      * @param obj
      * @param <T>
      * @return
@@ -112,7 +117,6 @@ public class Reflection {
     }-*/;
 
     /**
-     *
      * @return
      */
     public static native String createShortUID() /*-{

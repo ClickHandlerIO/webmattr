@@ -9,6 +9,8 @@ import webmattr.Reflection;
  */
 public class Ref<T> {
     private final static String INIT_PROP_NAME = "$$refinit$$";
+    private static long id = 0;
+
     @JsProperty
     final String name;
 
@@ -21,7 +23,7 @@ public class Ref<T> {
     }
 
     public static <T> Ref<T> make() {
-        return new Ref<>(Reflection.createShortUID());
+        return new Ref<>(String.valueOf(id++));
     }
 
     public void init(ReactComponent $this, Func.Run1<T> callback) {
@@ -50,14 +52,5 @@ public class Ref<T> {
 
     public void set(ReactComponent $this, T value) {
         Reflection.set($this, name, value);
-    }
-
-    public Func.Run1<T> pipe(ReactComponent $this, Func.Run1<T> callback) {
-        return (value) -> {
-            Reflection.set($this, name, value);
-            if (callback != null && value != null) {
-                callback.run(value);
-            }
-        };
     }
 }

@@ -5,8 +5,8 @@ import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 import webmattr.Func;
 import webmattr.Reflection;
-import webmattr.react.Ref;
 import webmattr.event.*;
+import webmattr.react.Ref;
 
 /**
  *
@@ -298,7 +298,9 @@ public class HTMLProps<T> extends DOMProps<T> {
 
     @JsIgnore
     public HTMLProps<T> set(String name, String value) {
-        Reflection.set(this, name, value);
+        if (value != null) {
+            Reflection.set(this, name, value);
+        }
         return this;
     }
 
