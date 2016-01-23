@@ -94,13 +94,20 @@ public abstract class ModuleLoader {
         }
 
         // Maybe it's a module prefix.
-        final String modulePrefix = p.split("/")[0];
+        String modulePrefix = p.split("/")[0];
 
         // Is it a sub-module.?
-        final ModuleLoader loader = ensureRegisterModules().get(modulePrefix.toLowerCase());
+        ModuleLoader loader = ensureRegisterModules().get(modulePrefix.toLowerCase());
+        if (loader == null) {
+            // Maybe pass-through?
+            loader = ensureRegisterModules().get("");
+            if (loader != null) {
+                modulePrefix = "";
+            }
+        }
         if (loader != null) {
             // Push down to sub-module.
-            loader.handle(p.substring(modulePrefix.length()), location, this.callback);
+            loader.handle(!modulePrefix.isEmpty() ? p.substring(modulePrefix.length()) : p, location, this.callback);
         } else {
             // Pass owned routes straight through.
             getRouteBuilder(value -> {

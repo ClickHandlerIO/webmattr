@@ -330,7 +330,7 @@ public class RouteProxy<T> {
      * @return
      */
     protected String buildPath(Object props) {
-        final String path = path();
+        String path = path();
         final StringBuilder sb = new StringBuilder();
 
         Reflection.iterate(props, (name, value) -> {
@@ -344,6 +344,10 @@ public class RouteProxy<T> {
 
             sb.append(name).append("=").append(URL.encode(String.valueOf(value)));
         });
+
+        if (path.endsWith("/")) {
+            path = path.substring(0, path.length() - 1);
+        }
 
         if (sb.length() > 0) {
             return path + "?" + sb.toString();
