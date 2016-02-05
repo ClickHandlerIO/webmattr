@@ -26,10 +26,6 @@ import javax.inject.Provider;
  */
 public abstract class Component<P, S> {
 
-    public static native boolean is(Object obj) /*-{
-        return obj && obj['__webmattr_component__$$__'];
-    }-*/;
-
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
@@ -48,8 +44,6 @@ public abstract class Component<P, S> {
     private final Func.Run componentDidMount = Func.bind(this::componentDidMount0);
     @JsProperty
     private final Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
-    @JsProperty
-    private final Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Defaults
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +62,8 @@ public abstract class Component<P, S> {
     // State
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     private Provider<S> stateProvider;
+    @JsProperty
+    private final Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
     @JsProperty
     private final Func.Call<S> getInitialState = Func.bind(this::getInitialState);
     private S stateType;
@@ -89,6 +85,10 @@ public abstract class Component<P, S> {
         addContextTypes(contextTypes);
         displayName = getDisplayName();
     }
+
+    public static native boolean is(Object obj) /*-{
+        return obj && obj['__webmattr_component__$$__'];
+    }-*/;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Build Context Types Object.
@@ -217,11 +217,15 @@ public abstract class Component<P, S> {
      * @param nextState the state object that the component will receive
      */
     @JsIgnore
-    protected boolean shouldComponentUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
-        return shouldComponentUpdate($this, nextProps, nextState);
+    protected boolean shouldComponentUpdate0(final ReactComponent $this, Object nextProps, Object nextState) {
+        return shouldComponentUpdate(
+            $this,
+            Reflection.copy(nextProps, propsProvider.get()),
+            Reflection.copy(nextState, stateProvider.get())
+        );
     }
 
-    protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
+    protected boolean shouldComponentUpdate(final ReactComponent $this, P nextProps, S nextState) {
         return true;
     }
 

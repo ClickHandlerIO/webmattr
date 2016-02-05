@@ -29,9 +29,8 @@ public abstract class AbstractAction<IN, OUT> {
         return timeoutMillis;
     }
 
-    @Inject
-    void setBus(Bus bus) {
-        this.bus = bus;
+    public Provider<IN> getInProvider() {
+        return inProvider;
     }
 
     @Inject
@@ -39,9 +38,18 @@ public abstract class AbstractAction<IN, OUT> {
         this.inProvider = inProvider;
     }
 
+    public Provider<OUT> getOutProvider() {
+        return outProvider;
+    }
+
     @Inject
     void setOutProvider(Provider<OUT> outProvider) {
         this.outProvider = outProvider;
+    }
+
+    @Inject
+    void setBus(Bus bus) {
+        this.bus = bus;
     }
 
     protected ActionCall<IN, OUT> build() {

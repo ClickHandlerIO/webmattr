@@ -9,7 +9,7 @@ import webmattr.Try;
 import java.util.*;
 
 /**
- * Wasabi messaging dispatcher.
+ * Remoting Dispatcher.
  * During the handshake with the other end, the capabilities
  * of each side is discovered and Wasabi will be the smallest
  * most efficient mode of transport.
