@@ -217,7 +217,7 @@ public abstract class Component<P, S> {
      * @param nextState the state object that the component will receive
      */
     @JsIgnore
-    protected boolean shouldComponentUpdate0(final ReactComponent $this, Object nextProps, Object nextState) {
+    protected boolean shouldComponentUpdate0(final ReactComponent<P, S> $this, Object nextProps, Object nextState) {
         return shouldComponentUpdate(
             $this,
             Reflection.copy(nextProps, propsProvider.get()),
@@ -225,7 +225,7 @@ public abstract class Component<P, S> {
         );
     }
 
-    protected boolean shouldComponentUpdate(final ReactComponent $this, P nextProps, S nextState) {
+    protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return true;
     }
 
