@@ -26,4 +26,6 @@ public interface History {
     void push(String path);
 
     void push(Object path);
+
+    void replace(String path);
 }

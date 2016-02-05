@@ -221,12 +221,31 @@ public class RouteProxy<T> {
      * @param propsCallback
      */
     public void go(Func.Run1<T> propsCallback) {
+        history.push(buildPath(propsCallback));
+    }
+
+    public void replace() {
+        replace(null);
+    }
+
+    public void replace(Func.Run1<T> propsCallback) {
+        history.replace(buildPath(propsCallback));
+    }
+
+    public String buildPath() {
+        return buildPath(null);
+    }
+
+    /**
+     * @param propsCallback
+     */
+    public String buildPath(Func.Run1<T> propsCallback) {
         final T props = getArgsProvider().get();
         if (propsCallback != null) {
             propsCallback.run(props);
         }
 
-        final String path = buildPath(props);
+        final String path = constructPath(props);
         String pathSpec = path();
         if (pathSpec == null) {
             pathSpec = "";
@@ -234,19 +253,18 @@ public class RouteProxy<T> {
 
         // Do we have an absolute path?
         if (pathSpec.startsWith("/") || path.startsWith("/")) {
-            history.push(path.startsWith("/") ? path : "/" + path);
-            return;
+            return path.startsWith("/") ? path : "/" + path;
         }
 
         // Get parent path.
         final String parentPath = parentPath();
 
         if (path.isEmpty()) {
-            history.push(parentPath);
+            return parentPath;
         } else if (parentPath.endsWith("/")) {
-            history.push(parentPath + path);
+            return parentPath + path;
         } else {
-            history.push(parentPath + "/" + path);
+            return parentPath + "/" + path;
         }
     }
 
@@ -329,7 +347,7 @@ public class RouteProxy<T> {
      * @param props
      * @return
      */
-    protected String buildPath(Object props) {
+    protected String constructPath(Object props) {
         String path = path();
         final StringBuilder sb = new StringBuilder();
 

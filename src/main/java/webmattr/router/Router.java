@@ -10,4 +10,7 @@ import jsinterop.annotations.JsType;
 public interface Router extends History {
     @JsMethod
     void setRouteLeaveHook(Route route, RouteHook hook);
+
+    @JsMethod
+    void replace(String path);
 }
