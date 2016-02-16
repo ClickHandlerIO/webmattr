@@ -9,7 +9,7 @@ public class LocationDescriptor {
     @JsProperty
     public String pathname;
     @JsProperty
-    public Object search;
+    public String search;
     @JsProperty
     public Object query;
     @JsProperty
@@ -23,7 +23,7 @@ public class LocationDescriptor {
         return this;
     }
 
-    public LocationDescriptor search(Object search) {
+    public LocationDescriptor search(String search) {
         this.search = search;
         return this;
     }

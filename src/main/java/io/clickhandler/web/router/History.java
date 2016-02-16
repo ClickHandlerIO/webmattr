@@ -7,13 +7,11 @@ import jsinterop.annotations.JsType;
  */
 @JsType(isNative = true)
 public interface History {
-    Object createHref(String path, Object query);
+    void transitionTo(LocationDescriptor location);
 
-    Object createKey();
+    void push(LocationDescriptor location);
 
-    Location createLocation();
-
-    Object createPath(String path, Object query);
+    void replace(LocationDescriptor location);
 
     void go(int n);
 
@@ -21,11 +19,9 @@ public interface History {
 
     void goForward();
 
-    boolean isActive(String pathname, Object query);
+    String createKey();
 
-    void push(String path);
+    String createPath(LocationDescriptor location);
 
-    void push(Object path);
-
-    void replace(String path);
+    Object createHref(LocationDescriptor location);
 }

@@ -30,6 +30,7 @@ public class RouteProxy<T> {
     private RouteProxy parent;
     //
     private String memoizedParentPath;
+    private boolean secured = true;
 
     /**
      *
@@ -112,6 +113,14 @@ public class RouteProxy<T> {
         this.path = path;
         this.parent = parent;
         this.index = index;
+    }
+
+    public boolean isSecured() {
+        return secured;
+    }
+
+    public void setSecured(boolean secured) {
+        this.secured = secured;
     }
 
     private static native boolean smartSet(Object target, String name, Object value) /*-{
@@ -221,7 +230,7 @@ public class RouteProxy<T> {
      * @param propsCallback
      */
     public void go(Func.Run1<T> propsCallback) {
-        history.push(buildPath(propsCallback));
+        history.push(buildLocation(propsCallback));
     }
 
     public void replace() {
@@ -229,43 +238,43 @@ public class RouteProxy<T> {
     }
 
     public void replace(Func.Run1<T> propsCallback) {
-        history.replace(buildPath(propsCallback));
+        history.replace(buildLocation(propsCallback));
     }
 
-    public String buildPath() {
-        return buildPath(null);
+    public LocationDescriptor buildLocation() {
+        return buildLocation(null);
     }
 
     /**
      * @param propsCallback
      */
-    public String buildPath(Func.Run1<T> propsCallback) {
+    public LocationDescriptor buildLocation(Func.Run1<T> propsCallback) {
         final T props = getArgsProvider().get();
         if (propsCallback != null) {
             propsCallback.run(props);
         }
 
-        final String path = constructPath(props);
-        String pathSpec = path();
-        if (pathSpec == null) {
-            pathSpec = "";
-        }
+        final String search = buildSearch(props);
+
+        String path = path();
 
         // Do we have an absolute path?
-        if (pathSpec.startsWith("/") || path.startsWith("/")) {
-            return path.startsWith("/") ? path : "/" + path;
+        if (path.startsWith("/")) {
+            return new LocationDescriptor().pathname(path).search(search);
         }
 
         // Get parent path.
         final String parentPath = parentPath();
 
         if (path.isEmpty()) {
-            return parentPath;
+            path = parentPath;
         } else if (parentPath.endsWith("/")) {
-            return parentPath + path;
+            path = parentPath + path;
         } else {
-            return parentPath + "/" + path;
+            path = parentPath + "/" + path;
         }
+
+        return new LocationDescriptor().pathname(path).search(search);
     }
 
     /**
@@ -343,12 +352,7 @@ public class RouteProxy<T> {
         return memoizedParentPath = sb.toString();
     }
 
-    /**
-     * @param props
-     * @return
-     */
-    protected String constructPath(Object props) {
-        String path = path();
+    protected String buildSearch(Object props) {
         final StringBuilder sb = new StringBuilder();
 
         Reflection.iterate(props, (name, value) -> {
@@ -363,15 +367,7 @@ public class RouteProxy<T> {
             sb.append(name).append("=").append(URL.encode(String.valueOf(value)));
         });
 
-        if (path.endsWith("/")) {
-            path = path.substring(0, path.length() - 1);
-        }
-
-        if (sb.length() > 0) {
-            return path + "?" + sb.toString();
-        } else {
-            return path;
-        }
+        return sb.length() > 0 ? "?" + sb.toString() : null;
     }
 
     public T toArgs(Location location) {
@@ -381,12 +377,12 @@ public class RouteProxy<T> {
             return args;
         }
 
-        final Object query = location.getQuery();
-        if (query == null) {
+        final Object search = location.getSearch();
+        if (search == null) {
             return args;
         }
 
-        mergeArgs(args, query);
+        mergeArgs(args, search);
         return args;
     }
 
