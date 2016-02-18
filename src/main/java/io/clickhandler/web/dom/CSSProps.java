@@ -10,6 +10,8 @@ import jsinterop.annotations.JsType;
 @JsType
 public class CSSProps {
     @JsProperty
+    public Object backgroundColor;
+    @JsProperty
     public Number boxFlex;
     @JsProperty
     public Number boxFlexGroup;
@@ -545,6 +547,11 @@ public class CSSProps {
     public Object wrapOption;
     @JsProperty
     public Object writingMode;
+    @JsIgnore
+    public CSSProps backgroundColor(Object value) {
+        this.backgroundColor = value;
+        return this;
+    }
     @JsIgnore
     public CSSProps boxFlex(Number value) {
         this.boxFlex = value;
