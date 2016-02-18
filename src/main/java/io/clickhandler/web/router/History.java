@@ -23,5 +23,5 @@ public interface History {
 
     String createPath(LocationDescriptor location);
 
-    Object createHref(LocationDescriptor location);
+    String createHref(LocationDescriptor location);
 }

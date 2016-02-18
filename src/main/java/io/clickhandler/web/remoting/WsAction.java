@@ -1,5 +1,6 @@
 package io.clickhandler.web.remoting;
 
+import io.clickhandler.web.Bus;
 import io.clickhandler.web.JSON;
 import io.clickhandler.web.action.AbstractAction;
 import io.clickhandler.web.action.TimedOutException;
@@ -17,8 +18,15 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
         return dispatcher;
     }
 
+    public Bus.TypeName<IN> inTypeName() {
+        return null;
+    }
+
+    public Bus.TypeName<OUT> outTypeName() {
+        return null;
+    }
+
     /**
-     *
      * @return
      */
     protected abstract String path();
@@ -30,6 +38,8 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
     @Override
     protected void handle(IN request) {
         dispatcher.request(
+            inTypeName(),
+            outTypeName(),
             // Timeout Millis.
             timeoutMillis(),
             // Action name.

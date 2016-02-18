@@ -9,16 +9,9 @@ public class WsEnvelope {
     // Direction
     public static final int OUT = 0;
     public static final int IN = 1;
-
-    // Encoding
-    public static final int NONE = 0;
-    public static final int GZIP = 1;
-
-    // Format
-    public static final int JSON = 0;
-    public static final int MSGPACK = 1;
-    public static final int XML = 2;
-    public static final int RAW = 9;
+    public static final int SUB = 2;
+    public static final int USUB = 3;
+    public static final int PUSH = 4;
 
     @JsProperty(name = "d")
     private int in;

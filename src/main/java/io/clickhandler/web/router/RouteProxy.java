@@ -1,8 +1,8 @@
 package io.clickhandler.web.router;
 
 import com.google.gwt.http.client.URL;
-import io.clickhandler.web.Reflection;
 import io.clickhandler.web.Func;
+import io.clickhandler.web.Reflection;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -28,8 +28,9 @@ public class RouteProxy<T> {
     private boolean index;
     // Parent RouteProxy.
     private RouteProxy parent;
-    //
+    // Used to save repeat calls to build the parent path.
     private String memoizedParentPath;
+    // Flag that is helpful for RouteGatekeepers
     private boolean secured = true;
 
     /**
@@ -115,14 +116,14 @@ public class RouteProxy<T> {
         this.index = index;
     }
 
-    public boolean isSecured() {
-        return secured;
-    }
-
-    public void setSecured(boolean secured) {
-        this.secured = secured;
-    }
-
+    /**
+     * Tries to convert a wildcard to the type discovered from the default value.
+     *
+     * @param target
+     * @param name
+     * @param value
+     * @return
+     */
     private static native boolean smartSet(Object target, String name, Object value) /*-{
         if (value == null) {
             return true;
@@ -165,6 +166,22 @@ public class RouteProxy<T> {
         }
         return true;
     }-*/;
+
+    /**
+     *
+     * @return
+     */
+    public boolean isSecured() {
+        return secured;
+    }
+
+    /**
+     *
+     * @param secured
+     */
+    public void setSecured(boolean secured) {
+        this.secured = secured;
+    }
 
     /**
      * @return
@@ -233,14 +250,38 @@ public class RouteProxy<T> {
         history.push(buildLocation(propsCallback));
     }
 
+    /**
+     *
+     */
     public void replace() {
         replace(null);
     }
 
+    /**
+     * @param propsCallback
+     */
     public void replace(Func.Run1<T> propsCallback) {
         history.replace(buildLocation(propsCallback));
     }
 
+    /**
+     * @return
+     */
+    public String createHref() {
+        return createHref(null);
+    }
+
+    /**
+     * @param propsCallback
+     * @return
+     */
+    public String createHref(Func.Run1<T> propsCallback) {
+        return history.createHref(buildLocation(propsCallback));
+    }
+
+    /**
+     * @return
+     */
     public LocationDescriptor buildLocation() {
         return buildLocation(null);
     }
@@ -296,9 +337,8 @@ public class RouteProxy<T> {
      * @return
      */
     public String parentPath() {
-        if (memoizedParentPath != null) {
+        if (memoizedParentPath != null)
             return memoizedParentPath;
-        }
 
         final List<RouteProxy> ancesters = new ArrayList<>();
 
@@ -352,6 +392,10 @@ public class RouteProxy<T> {
         return memoizedParentPath = sb.toString();
     }
 
+    /**
+     * @param props
+     * @return
+     */
     protected String buildSearch(Object props) {
         final StringBuilder sb = new StringBuilder();
 
@@ -370,6 +414,10 @@ public class RouteProxy<T> {
         return sb.length() > 0 ? "?" + sb.toString() : null;
     }
 
+    /**
+     * @param location
+     * @return
+     */
     public T toArgs(Location location) {
         final T args = argsProvider.get();
 
@@ -386,6 +434,10 @@ public class RouteProxy<T> {
         return args;
     }
 
+    /**
+     * @param query
+     * @return
+     */
     public T toArgs(Object query) {
         final T args = argsProvider.get();
 
@@ -397,6 +449,10 @@ public class RouteProxy<T> {
         return args;
     }
 
+    /**
+     * @param args
+     * @param query
+     */
     public void mergeArgs(T args, Object query) {
         if (args == null) {
             return;

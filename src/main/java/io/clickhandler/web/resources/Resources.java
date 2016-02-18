@@ -10,7 +10,6 @@ import com.google.gwt.resources.client.TextResource;
 public interface Resources extends ClientBundle {
     Resources INSTANCE = GWT.create(Resources.class);
 
-//    @Source("react-0.14.6.min.js")
     @Source("react-0.14.7.js")
     TextResource js_react();
 

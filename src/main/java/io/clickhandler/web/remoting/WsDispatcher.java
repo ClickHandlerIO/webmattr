@@ -1,6 +1,7 @@
 package io.clickhandler.web.remoting;
 
 import com.google.gwt.user.client.Timer;
+import com.google.web.bindery.event.shared.HandlerRegistration;
 import io.clickhandler.web.Bus;
 import io.clickhandler.web.Func;
 import io.clickhandler.web.JSON;
@@ -10,18 +11,16 @@ import java.util.*;
 
 /**
  * Remoting Dispatcher.
- * During the handshake with the other end, the capabilities
- * of each side is discovered and Wasabi will be the smallest
- * most efficient mode of transport.
  *
  * @author Clay Molocznik
  */
 public class WsDispatcher {
+    private final static int DEFAULT_SUB_TIMEOUT = 5_000;
     private final Bus bus;
     private final String url;
     private final Queue<Outgoing> pendingQueue = new LinkedList<>();
     private final LinkedHashMap<Integer, Outgoing> calls = new LinkedHashMap<>();
-
+    private final Map<String, Subscription> subMap = new HashMap<>();
     private Ws webSocket;
     private int reaperMillis = 500;
     private Timer reaperTimer;
@@ -42,6 +41,27 @@ public class WsDispatcher {
 
     public Ws getWebSocket() {
         return webSocket;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> HandlerRegistration subscribe(PushAddress<T> address, Func.Run1<T> callback) {
+        if (address == null || callback == null)
+            return null;
+
+        final String addr = address.getAddress();
+        if (addr == null || addr.isEmpty()) {
+            return null;
+        }
+
+        Subscription<T> registration = subMap.get(addr);
+
+        if (registration == null) {
+            registration = new Subscription<>(addr, address.getTypeName());
+            subMap.put(addr, registration);
+        }
+
+        registration.subscribe(callback);
+        return registration;
     }
 
     /**
@@ -122,12 +142,36 @@ public class WsDispatcher {
         // Publish a new WsEnvelopeEvent to the Bus.
         bus.publish(new WsEnvelopeEvent(this, envelope));
 
-        // Did we get a response?
-        if (envelope.isIn() != WsEnvelope.IN) {
-            final Outgoing call = calls.remove(envelope.getId());
-            if (call != null) {
-                Try.silent(call.callback, envelope);
-            }
+        switch (envelope.isIn()) {
+            case WsEnvelope.IN:
+                // Incoming request.
+                break;
+            case WsEnvelope.OUT:
+                // It's a response.
+                final Outgoing call = calls.remove(envelope.getId());
+                if (call != null) {
+                    Try.silent(call.callback, envelope);
+                }
+                break;
+            case WsEnvelope.PUSH:
+                // It's a push event.
+                // Fire on main event bus.
+                String type = envelope.getType();
+                if (type == null) type = "";
+                else type = type.trim();
+
+                String body = envelope.getPayload();
+                if (body == null) body = "";
+                else body = body.trim();
+
+                if (body.isEmpty()) body = "{}";
+
+                final Subscription subscription = subMap.get(type);
+                if (subscription != null) {
+                    subscription.dispatch(JSON.parse(body));
+                }
+
+                break;
         }
     }
 
@@ -250,20 +294,31 @@ public class WsDispatcher {
      * @param callback
      * @param timeoutCallback
      */
-    public void request(int timeoutMillis,
+    public void request(Bus.TypeName inType,
+                        Bus.TypeName outType,
+                        int timeoutMillis,
                         String type,
                         String payload,
                         Func.Run1<WsEnvelope> callback,
                         Func.Run timeoutCallback) {
         final WsEnvelope envelope = new WsEnvelope(WsEnvelope.IN, nextId(), 0, type, payload);
-        final Outgoing call = new Outgoing(new Date().getTime(), timeoutMillis, envelope, callback, timeoutCallback);
+        final Outgoing call = new Outgoing(inType, outType, new Date().getTime(), timeoutMillis, envelope, callback, timeoutCallback);
         send(call);
+    }
+
+    public enum SubState {
+        INVALID,
+        NOT_REGISTERED,
+        REGISTERING,
+        REGISTERED,;
     }
 
     /**
      *
      */
     private static final class Outgoing {
+        private final Bus.TypeName inType;
+        private final Bus.TypeName outType;
         private final long started;
         private final int timeoutMillis;
         private final WsEnvelope envelope;
@@ -271,7 +326,15 @@ public class WsDispatcher {
         private final Func.Run timeoutCallback;
         private int tries = 0;
 
-        public Outgoing(long started, int timeoutMillis, WsEnvelope envelope, Func.Run1<WsEnvelope> callback, Func.Run timeoutCallback) {
+        public Outgoing(Bus.TypeName inType,
+                        Bus.TypeName outType,
+                        long started,
+                        int timeoutMillis,
+                        WsEnvelope envelope,
+                        Func.Run1<WsEnvelope> callback,
+                        Func.Run timeoutCallback) {
+            this.inType = inType;
+            this.outType = outType;
             this.started = started;
             this.timeoutMillis = timeoutMillis;
             this.envelope = envelope;
@@ -281,6 +344,145 @@ public class WsDispatcher {
 
         public boolean isTimedOut(long time) {
             return (time - started) > timeoutMillis;
+        }
+    }
+
+    /**
+     * Manages the lifecycle of a single subscription to a single address.
+     * Multiple local listeners may be registered.
+     * It automatically subscribes with the server upon the first local listener and un-subscribes when
+     * the last local listener is removed.
+     *
+     * @param <T>
+     */
+    private class Subscription<T> implements HandlerRegistration {
+        private final String name;
+        private final Bus.TypeName<T> typeName;
+        private SubState state = SubState.NOT_REGISTERED;
+        private ArrayList<LocalSub> subs = new ArrayList<>();
+
+        public Subscription(String name, Bus.TypeName<T> typeName) {
+            this.name = name;
+            this.typeName = typeName;
+            subscribe();
+        }
+
+        /**
+         *
+         */
+        @Override
+        public void removeHandler() {
+            final Subscription subscription = subMap.remove(name);
+            if (subscription == null) {
+                return;
+            }
+
+            for (LocalSub sub : subs) {
+                sub.removeHandler();
+            }
+
+            if (state == SubState.INVALID)
+                return;
+
+            send(
+                new Outgoing(
+                    null,
+                    null,
+                    new Date().getTime(),
+                    DEFAULT_SUB_TIMEOUT,
+                    new WsEnvelope(WsEnvelope.USUB, nextId(), 0, name, null),
+                    envelope -> setState(envelope.getCode() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED),
+                    () -> setState(SubState.NOT_REGISTERED)
+                )
+            );
+        }
+
+        /**
+         * @param state
+         */
+        public void setState(SubState state) {
+            this.state = state;
+            if (state == SubState.NOT_REGISTERED) {
+                subscribe();
+            }
+        }
+
+        /**
+         *
+         */
+        public void subscribe() {
+            if (state == SubState.REGISTERED || state == SubState.REGISTERING) {
+                return;
+            }
+            setState(SubState.REGISTERING);
+            send(
+                new Outgoing(
+                    null,
+                    null,
+                    new Date().getTime(),
+                    DEFAULT_SUB_TIMEOUT,
+                    new WsEnvelope(WsEnvelope.SUB, nextId(), 0, name, null),
+                    envelope -> {
+                        // Was it a valid subscription.
+                        if (envelope.getCode() == 404) {
+                            removeHandler();
+                            return;
+                        }
+                        setState(envelope.getCode() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED);
+                    },
+                    () -> setState(SubState.NOT_REGISTERED)
+                )
+            );
+        }
+
+        /**
+         * @param event
+         */
+        public void dispatch(T event) {
+            bus.publish(typeName, event);
+
+            Try.later(() -> {
+                for (LocalSub sub : subs) {
+                    sub.callback.run(event);
+                }
+            });
+        }
+
+        /**
+         * @param callback
+         * @return
+         */
+        public HandlerRegistration subscribe(Func.Run1<T> callback) {
+            final LocalSub sub = new LocalSub(callback);
+            subs.add(sub);
+            return sub;
+        }
+
+        /**
+         * @param sub
+         */
+        private void unsubscribe(LocalSub sub) {
+            subs.remove(sub);
+
+            if (subs.isEmpty()) {
+                removeHandler();
+            }
+        }
+
+        /**
+         *
+         */
+        private class LocalSub implements HandlerRegistration {
+            private final Func.Run1<T> callback;
+
+            public LocalSub(Func.Run1<T> callback) {
+                this.callback = callback;
+            }
+
+            @Override
+            public void removeHandler() {
+                unsubscribe(this);
+            }
         }
     }
 }
