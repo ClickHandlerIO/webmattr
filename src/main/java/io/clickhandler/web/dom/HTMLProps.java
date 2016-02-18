@@ -1,12 +1,12 @@
 package io.clickhandler.web.dom;
 
+import io.clickhandler.web.Func;
+import io.clickhandler.web.Reflection;
+import io.clickhandler.web.event.*;
+import io.clickhandler.web.react.Ref;
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
-import io.clickhandler.web.event.*;
-import io.clickhandler.web.Func;
-import io.clickhandler.web.Reflection;
-import io.clickhandler.web.react.Ref;
 
 /**
  *
@@ -967,6 +967,15 @@ public class HTMLProps<T> extends DOMProps<T> {
     @JsIgnore
     public HTMLProps<T> style(CSSProps value) {
         this.style = value;
+        return this;
+    }
+
+    @JsIgnore
+    public HTMLProps<T> style(Func.Run1<CSSProps> callback) {
+        if (callback == null)
+            return this;
+        this.style = new CSSProps();
+        callback.run(this.style);
         return this;
     }
 
