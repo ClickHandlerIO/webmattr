@@ -133,7 +133,7 @@ public class WsDispatcher {
      */
     private void data(String payload) {
         // Parse envelope.
-        final WsEnvelope envelope = JSON.parse(payload, new WsEnvelope());
+        final WsEnvelope envelope = JSON.parse(payload);
 
         if (envelope == null) {
             return;
@@ -142,25 +142,25 @@ public class WsDispatcher {
         // Publish a new WsEnvelopeEvent to the Bus.
         bus.publish(new WsEnvelopeEvent(this, envelope));
 
-        switch (envelope.isIn()) {
-            case WsEnvelope.IN:
+        switch (envelope.getMethod()) {
+            case WsEnvelope.Constants.IN:
                 // Incoming request.
                 break;
-            case WsEnvelope.OUT:
+            case WsEnvelope.Constants.OUT:
                 // It's a response.
                 final Outgoing call = calls.remove(envelope.getId());
                 if (call != null) {
                     Try.silent(call.callback, envelope);
                 }
                 break;
-            case WsEnvelope.PUSH:
+            case WsEnvelope.Constants.PUSH:
                 // It's a push event.
                 // Fire on main event bus.
                 String type = envelope.getType();
                 if (type == null) type = "";
                 else type = type.trim();
 
-                String body = envelope.getPayload();
+                String body = envelope.getBody();
                 if (body == null) body = "";
                 else body = body.trim();
 
@@ -170,7 +170,6 @@ public class WsDispatcher {
                 if (subscription != null) {
                     subscription.dispatch(JSON.parse(body));
                 }
-
                 break;
         }
     }
@@ -201,10 +200,14 @@ public class WsDispatcher {
      * @return
      */
     private int nextId() {
+        // Increment.
         id++;
-        if (id < 0) {
+
+        // Handle overflow.
+        if (id < 0)
             id = 1;
-        }
+
+        // Return.
         return id;
     }
 
@@ -301,7 +304,7 @@ public class WsDispatcher {
                         String payload,
                         Func.Run1<WsEnvelope> callback,
                         Func.Run timeoutCallback) {
-        final WsEnvelope envelope = new WsEnvelope(WsEnvelope.IN, nextId(), 0, type, payload);
+        final WsEnvelope envelope = WsEnvelope.Factory.create(WsEnvelope.Constants.IN, nextId(), 0, type, payload);
         final Outgoing call = new Outgoing(inType, outType, new Date().getTime(), timeoutMillis, envelope, callback, timeoutCallback);
         send(call);
     }
@@ -390,7 +393,7 @@ public class WsDispatcher {
                     null,
                     new Date().getTime(),
                     DEFAULT_SUB_TIMEOUT,
-                    new WsEnvelope(WsEnvelope.USUB, nextId(), 0, name, null),
+                    WsEnvelope.Factory.create(WsEnvelope.Constants.USUB, nextId(), 0, name, null),
                     envelope -> setState(envelope.getCode() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED),
                     () -> setState(SubState.NOT_REGISTERED)
                 )
@@ -421,7 +424,7 @@ public class WsDispatcher {
                     null,
                     new Date().getTime(),
                     DEFAULT_SUB_TIMEOUT,
-                    new WsEnvelope(WsEnvelope.SUB, nextId(), 0, name, null),
+                    WsEnvelope.Factory.create(WsEnvelope.Constants.SUB, nextId(), 0, name, null),
                     envelope -> {
                         // Was it a valid subscription.
                         if (envelope.getCode() == 404) {

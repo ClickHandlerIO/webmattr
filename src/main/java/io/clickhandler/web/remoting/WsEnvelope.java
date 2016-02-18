@@ -1,94 +1,66 @@
 package io.clickhandler.web.remoting;
 
 import jsinterop.annotations.JsProperty;
+import jsinterop.annotations.JsType;
 
 /**
  * Wasabi Envelope
  */
-public class WsEnvelope {
-    // Direction
-    public static final int OUT = 0;
-    public static final int IN = 1;
-    public static final int SUB = 2;
-    public static final int USUB = 3;
-    public static final int PUSH = 4;
+@JsType(isNative = true)
+public interface WsEnvelope {
+    @JsProperty(name = "m")
+    int getMethod();
 
-    @JsProperty(name = "d")
-    private int in;
+    @JsProperty(name = "m")
+    void setMethod(int method);
+
     @JsProperty(name = "i")
-    private int id;
-    @JsProperty(name = "s")
-    private int sequence;
+    int getId();
+
+    @JsProperty(name = "i")
+    void setId(int id);
+
     @JsProperty(name = "c")
-    private int code;
-    @JsProperty(name = "e")
-    private int encoding;
-    @JsProperty(name = "f")
-    private int format;
+    int getCode();
+
+    @JsProperty(name = "c")
+    void setCode(int code);
+
     @JsProperty(name = "t")
-    private String type;
-    @JsProperty(name = "p")
-    private String payload;
+    String getType();
 
-    public WsEnvelope() {
+    @JsProperty(name = "t")
+    void setType(String type);
+
+    @JsProperty(name = "b")
+    String getBody();
+
+    @JsProperty(name = "b")
+    void setBody(String body);
+
+    class Factory {
+        public static native WsEnvelope create() /*-{
+            return {};
+        }-*/;
+
+        public static WsEnvelope create(int method, int id, int code, String type, String body) {
+            final WsEnvelope envelope = create();
+            envelope.setMethod(method);
+            envelope.setId(id);
+            envelope.setCode(code);
+            envelope.setType(type);
+            envelope.setBody(body);
+            return envelope;
+        }
     }
 
-    public WsEnvelope(int in, int id, int code, String type, String payload) {
-        this.in = in;
-        this.id = id;
-        this.code = code;
-        this.type = type;
-        this.payload = payload;
-    }
-
-    public WsEnvelope(int in, int id, int code, int encoding, int format, String type, String payload) {
-        this.in = in;
-        this.id = id;
-        this.code = code;
-        this.encoding = encoding;
-        this.format = format;
-        this.type = type;
-        this.payload = payload;
-    }
-
-    public int isIn() {
-        return in;
-    }
-
-    public void setIn(int in) {
-        this.in = in;
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public void setCode(int code) {
-        this.code = code;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public void setPayload(String payload) {
-        this.payload = payload;
+    class Constants {
+        // Direction
+        public static final int OUT = 0;
+        public static final int IN = 1;
+        public static final int SUB = 2;
+        public static final int USUB = 3;
+        public static final int PUSH = 4;
     }
 }
 
