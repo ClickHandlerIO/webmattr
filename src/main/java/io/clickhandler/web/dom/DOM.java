@@ -2,6 +2,8 @@ package io.clickhandler.web.dom;
 
 import elemental.dom.Element;
 import elemental.html.*;
+import io.clickhandler.web.Reflection;
+import io.clickhandler.web.Try;
 import io.clickhandler.web.react.*;
 import io.clickhandler.web.Func;
 
@@ -45,6 +47,8 @@ public interface DOM {
     }
 
     static ReactElement create(String tagName, Object... children) {
+//        if (children != null)
+//            Try.silent(() -> Reflection.set(children, "key", ChildCounter.get().newKey()));
         return React.createElement(
             tagName,
             props(tagName),

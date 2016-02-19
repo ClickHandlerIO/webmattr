@@ -31,6 +31,10 @@ public class Bus {
         return new TypeName<>();
     }
 
+    /**
+     *
+     * @return
+     */
     public EventBus getEventBus() {
         return eventBus;
     }

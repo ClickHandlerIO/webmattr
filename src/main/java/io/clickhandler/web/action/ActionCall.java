@@ -1,10 +1,9 @@
 package io.clickhandler.web.action;
 
-import io.clickhandler.web.Try;
 import io.clickhandler.web.Func;
+import io.clickhandler.web.Try;
 
 import javax.inject.Provider;
-import java.util.List;
 
 /**
  * Maintains the lifecycle of a single Action call.
@@ -12,6 +11,7 @@ import java.util.List;
  * @author Clay Molocznik
  */
 public class ActionCall<IN, OUT> {
+    ActionCalls scope;
     private IN request;
     private ErrorCallback errorCallback;
     private ResponseCallback<OUT> response;
@@ -20,7 +20,6 @@ public class ActionCall<IN, OUT> {
     private boolean wasDispatched;
     private Func.Run1<IN> dispatch;
     private Provider<IN> requestProvider;
-    private List<Ref> refs;
     private int timeoutMillis;
 
     ActionCall(Func.Run1<IN> dispatch, Provider<IN> requestProvider) {
@@ -103,52 +102,49 @@ public class ActionCall<IN, OUT> {
     }
 
     void onResponse(OUT response) {
-        if (this.response != null) {
-            try {
+        try {
+            if (this.response != null)
                 this.response.call(response);
-            } catch (Throwable e) {
-                failed(e);
-            } finally {
-                this.response = null;
-                always();
-            }
+        } catch (Throwable e) {
+            failed(e);
+        } finally {
+            this.response = null;
+            always();
         }
     }
 
     void onError(Throwable e) {
-        if (errorCallback != null) {
-            try {
+        try {
+            if (errorCallback != null)
                 errorCallback.run(e);
-            } finally {
-                errorCallback = null;
-                always();
-            }
+        } finally {
+            errorCallback = null;
+            always();
         }
     }
 
     void always() {
-        if (alwaysCallback != null) {
-            try {
-                alwaysCallback.run(wasDispatched);
-            } finally {
-                alwaysCallback = null;
-                cleanup();
-            }
+        if (alwaysCallback == null) return;
+
+        try {
+            Try.later(() -> alwaysCallback.run(wasDispatched));
+        } finally {
+            alwaysCallback = null;
+            cleanup();
         }
     }
 
     void failed(Throwable e) {
-        if (errorCallback != null) {
-            try {
+        try {
+            if (errorCallback != null)
                 errorCallback.run(e);
-            } catch (Throwable e2) {
-                // Ignore.
-            } finally {
-                errorCallback = null;
+        } catch (Throwable e2) {
+            // Ignore.
+        } finally {
+            errorCallback = null;
 
-                // Call always.
-                always();
-            }
+            // Call always.
+            always();
         }
     }
 
@@ -180,6 +176,10 @@ public class ActionCall<IN, OUT> {
     }
 
     public void cleanup() {
+        cleanup(false);
+    }
+
+    void cleanup(boolean forced) {
         try {
             requestProvider = null;
             errorCallback = null;
@@ -187,25 +187,13 @@ public class ActionCall<IN, OUT> {
             willSend = null;
             always();
         } finally {
-            clearRefs();
-        }
-    }
-
-    private void clearRefs() {
-        if (refs != null) {
-            for (Ref ref : refs) {
-                try {
-                    ref.remove();
-                } catch (Throwable e) {
-                    // Ignore.
+            try {
+                if (scope != null && !forced) {
+                    scope.remove(this);
                 }
+            } finally {
+                scope = null;
             }
-            refs.clear();
-            refs = null;
         }
-    }
-
-    interface Ref {
-        void remove();
     }
 }

@@ -8,11 +8,12 @@ import io.clickhandler.web.resources.Resources;
  *
  */
 public class React {
+    public static final String BUS = "$bus$";
     public static final String ACTION_CALLS = "$actionCalls$";
     public static final String ACTION = "$action$";
     public static final String GET_REF = "$getRef$";
     public static final String SET_REF = "$setRef$";
-    public static final String EVENT_BUS_REGISTRATIONS = "$eventBusRegistrations$";
+    public static final String HANDLER_REGISTRATIONS = "$handlerReg$";
     public static final String GET_PROPERTY = "$getProperty$";
     public static final String GET_PROPS = "$getProps$";
     public static final String GET_STATE = "$getState$";

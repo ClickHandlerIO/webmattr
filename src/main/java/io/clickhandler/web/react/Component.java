@@ -4,18 +4,19 @@ import elemental.client.Browser;
 import elemental.dom.Document;
 import elemental.html.Console;
 import elemental.html.Window;
-import jsinterop.annotations.JsIgnore;
-import jsinterop.annotations.JsProperty;
-import jsinterop.annotations.JsType;
 import io.clickhandler.web.Bus;
-import io.clickhandler.web.action.ActionCall;
-import io.clickhandler.web.action.ActionCalls;
-import io.clickhandler.web.action.ActionDispatcher;
-import io.clickhandler.web.router.History;
+import io.clickhandler.web.BusDelegate;
 import io.clickhandler.web.Func;
 import io.clickhandler.web.Reflection;
 import io.clickhandler.web.action.AbstractAction;
+import io.clickhandler.web.action.ActionCall;
+import io.clickhandler.web.action.ActionCalls;
+import io.clickhandler.web.action.ActionBuilder;
 import io.clickhandler.web.dom.DOM;
+import io.clickhandler.web.router.History;
+import jsinterop.annotations.JsIgnore;
+import jsinterop.annotations.JsProperty;
+import jsinterop.annotations.JsType;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -25,12 +26,10 @@ import javax.inject.Provider;
  * @param <S>
  */
 public abstract class Component<P, S> {
-
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
-    @JsProperty
-    private final boolean __webmattr_component__$$__ = true;
+
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Lifecycle
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -67,8 +66,6 @@ public abstract class Component<P, S> {
     @JsProperty
     private final Func.Call<S> getInitialState = Func.bind(this::getInitialState);
     private S stateType;
-    @JsProperty
-    private final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Render
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -79,16 +76,14 @@ public abstract class Component<P, S> {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     private Object reactClass;
     private Bus bus;
+    @JsProperty
+    private final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
     private History history;
 
     public Component() {
         addContextTypes(contextTypes);
         displayName = getDisplayName();
     }
-
-    public static native boolean is(Object obj) /*-{
-        return obj && obj['__webmattr_component__$$__'];
-    }-*/;
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Build Context Types Object.
@@ -113,7 +108,7 @@ public abstract class Component<P, S> {
         stateType = provider.get();
     }
 
-    public Bus bus() {
+    private Bus bus() {
         return bus;
     }
 
@@ -243,6 +238,31 @@ public abstract class Component<P, S> {
         S state = getState($this);
         ChildCounter.get().scope();
         try {
+            if (props != null) {
+                // Fix children not having a "key" set.
+                Object children = Reflection.get(props, "children");
+                if (children != null) {
+                    Object key = Reflection.get(children, "key");
+
+                    if (key == null) {
+                        // Create a new key.
+                        key = ChildCounter.get().newKey();
+                        // Try to set it on children.
+                        Reflection.set(children, "key", key);
+
+                        // Test that key was set properly.
+                        if (Reflection.get(children, "key") != key) {
+                            // Copy to new "children" object.
+                            final Object newChildren = new Object();
+                            Reflection.assign(newChildren, children);
+                            // Set key.
+                            Reflection.set(newChildren, "key", key);
+                            // Set new "children" on props.
+                            Reflection.set(props, "children", newChildren);
+                        }
+                    }
+                }
+            }
             return render($this, props, state);
         } finally {
             ChildCounter.get().pop();
@@ -254,13 +274,13 @@ public abstract class Component<P, S> {
     @JsIgnore
     private void componentWillMount0(final ReactComponent $this) {
         if ($this != null) {
-            // Register event handlers.
+            Reflection.set($this, React.BUS, new BusDelegate(bus));
             Reflection.set($this, React.ACTION_CALLS, new ActionCalls());
-            Reflection.set($this, React.ACTION, action());
-            Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
             Reflection.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
             Reflection.set($this, React.GET_STATE, (Func.Call<S>) () -> getState($this));
             Reflection.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> Reflection.get($this, name));
+            Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
+            Reflection.set($this, React.SET_REF, (Func.Run2<Ref, Object>) (ref, value) -> ref.set($this, value));
         }
         componentWillMount($this, getProps($this), getState($this));
     }
@@ -269,32 +289,9 @@ public abstract class Component<P, S> {
         return new Func.Call1<ActionCall<IN, OUT>, Provider<H>>() {
             @Override
             public ActionCall<IN, OUT> call(Provider<H> value) {
-                return ActionDispatcher.action(value);
+                return ActionBuilder.action(value);
             }
         };
-    }
-
-    /**
-     * @param $this
-     * @param action
-     * @param <H>
-     * @param <IN>
-     * @param <OUT>
-     * @return
-     */
-    protected <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(
-        ReactComponent $this,
-        Provider<H> action
-    ) {
-        ActionCalls calls = Reflection.get($this, React.ACTION_CALLS);
-        if (calls == null) {
-            calls = new ActionCalls();
-            Reflection.set($this, React.ACTION_CALLS, calls);
-        }
-
-        final ActionCall<IN, OUT> call = ActionDispatcher.action(action);
-        calls.add(call);
-        return call;
     }
 
     /**
@@ -308,10 +305,6 @@ public abstract class Component<P, S> {
 
     @JsIgnore
     private void componentDidMount0(final ReactComponent<P, S> $this) {
-        if ($this != null) {
-            Reflection.set($this, React.EVENT_BUS_REGISTRATIONS, new Object());
-        }
-
         componentDidMount($this);
     }
 
@@ -376,21 +369,7 @@ public abstract class Component<P, S> {
 
     @JsIgnore
     private void componentWillUnmount0(final ReactComponent<P, S> $this) {
-        // Cleanup event registrations.
-//        HandlerRegistration registrations = React.get($this, React.EVENT_BUS_REGISTRATIONS);
-//        if (registrations != null) {
-//            registrations.removeHandler();
-//            React.delete($this, React.EVENT_BUS_REGISTRATIONS);
-//        }
-
-        // TODO: Cleanup.
-//        React.set($this, React.ACTION_CALLS, new ActionCalls());
-//        React.set($this, React.ACTION, action());
-//        React.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
-//        React.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
-//        React.set($this, React.GET_STATE, (Func.Call<S>) () -> getState($this));
-//        React.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> React.get($this, name));
-
+        $this.cleanup();
         componentWillUnmount($this);
     }
 
@@ -425,7 +404,7 @@ public abstract class Component<P, S> {
         }
 
         // Set key manually.
-        final Object key = Reflection.get(props, "key");
+        Object key = Reflection.get(props, "key");
         if (key == null) {
             Reflection.set(props, "key", ChildCounter.get().newKey());
         }

@@ -1,26 +1,38 @@
 package io.clickhandler.web.action;
 
-import java.util.HashMap;
-import java.util.Map;
+import io.clickhandler.web.Try;
+
+import java.util.HashSet;
 
 /**
  *
  */
 public class ActionCalls {
-    private Map<Object, ActionCall> openCalls;
+    private HashSet<ActionCall> calls;
 
     public void add(ActionCall call) {
-        if (openCalls == null) {
-            openCalls = new HashMap<>();
+        if (calls == null) {
+            calls = new HashSet<>();
         }
-        ActionCall.Ref ref = () -> remove(call);
-        openCalls.put(ref, call);
+        calls.add(call);
     }
 
-    private void remove(ActionCall call) {
-        openCalls.remove(call);
-        if (openCalls.isEmpty()) {
-            openCalls = null;
+    public void clear() {
+        if (calls == null || calls.isEmpty()) {
+            calls = null;
+            return;
+        }
+
+        for (ActionCall call : calls) {
+            Try.silent(() -> call.cleanup(true));
+        }
+        calls.clear();
+    }
+
+    void remove(ActionCall call) {
+        calls.remove(call);
+        if (calls.isEmpty()) {
+            calls = null;
         }
     }
 }

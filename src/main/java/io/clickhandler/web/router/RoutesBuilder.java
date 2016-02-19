@@ -39,9 +39,7 @@ public abstract class RoutesBuilder {
     protected void registerComponents() {
         // Sniff out injected RouteComponents.
         Reflection.iterate(this, (name, value) -> {
-            if (RouteComponent.is(value)) {
-                add((RouteComponent) value);
-            }
+            add((RouteComponent) value);
         });
     }
 
