@@ -42,8 +42,8 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
      * @param out
      * @return
      */
-    protected InOut<IN, OUT> inOut(IN in, OUT out) {
-        return new InOut<>(in, out);
+    protected ResponseEvent<IN, OUT> responseEvent(IN in, OUT out) {
+        return new ResponseEvent<>(in, out);
     }
 
     /**
@@ -76,10 +76,10 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
                 if (envelope == null) {
                     return;
                 }
-                if (envelope.getCode() != 200) {
-                    error(new StatusCodeException(envelope.getCode()));
+                if (envelope.code() != 200) {
+                    error(new StatusCodeException((int)envelope.code()));
                 } else {
-                    OUT out = parseOut(envelope.getBody());
+                    OUT out = parseOut(envelope.body());
                     try {
                         respond(out);
                     } finally {
@@ -88,9 +88,9 @@ public abstract class WsAction<IN, OUT> extends AbstractAction<IN, OUT> {
                             if (outTypeName != null)
                                 bus.publish(outTypeName, out);
                         } finally {
-                            final InOut<IN, OUT> inOut = inOut(request, out);
-                            if (inOut != null)
-                                bus.publish(inOut);
+                            final ResponseEvent<IN, OUT> responseEvent = responseEvent(request, out);
+                            if (responseEvent != null)
+                                bus.publish(responseEvent);
                         }
                     }
                 }

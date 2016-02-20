@@ -4,7 +4,6 @@ import com.google.gwt.event.shared.GwtEvent;
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
 import com.google.web.bindery.event.shared.SimpleEventBus;
-import io.clickhandler.web.action.EventCallback;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -31,8 +30,13 @@ public class Bus {
         return new TypeName<>();
     }
 
+    public static <T> TypeName<T> scoped(TypeName<T> typeName, String context) {
+        if (typeName == null) return context == null ? new TypeName<>() : new TypeName<>();
+        if (context == null) return typeName;
+        return new TypeName<>(typeName.name + "|" + context);
+    }
+
     /**
-     *
      * @return
      */
     public EventBus getEventBus() {
@@ -53,6 +57,24 @@ public class Bus {
                 callback.call(event.message);
             }
         });
+    }
+
+    /**
+     * @param type
+     * @param callback
+     * @param <T>
+     * @return
+     */
+    public <T extends HasBusName<T>> HandlerRegistration subscribe(T type, EventCallback<T> callback) {
+        if (type == null) return null;
+        final TypeName<T> name;
+        try {
+            name = Reflection.call(type, "$busName$");
+        } catch (Throwable e) {
+            return null;
+        }
+
+        return subscribe(name, callback);
     }
 
     /**
@@ -95,6 +117,17 @@ public class Bus {
         eventBus.fireEvent(new InternalEvent<>(event, getType(event.getClass().getName())));
     }
 
+    public <T extends HasBusName> void publish(T event) {
+        final TypeName<T> name;
+        try {
+            name = Reflection.call(event, "$busName$");
+        } catch (Throwable e) {
+            return;
+        }
+        if (name != null)
+            publish(name, event);
+    }
+
     public <T> void publish(TypeName<T> name, T event) {
         eventBus.fireEvent(new InternalEvent<>(event, getType(name.name)));
     }
@@ -125,7 +158,15 @@ public class Bus {
      */
     public static class TypeName<T> {
         private static int counter = 0;
-        private final String name = "" + (++counter);
+        private String name;
+
+        public TypeName() {
+            name = "" + (++counter);
+        }
+
+        protected TypeName(String name) {
+            this.name = name;
+        }
     }
 
     /**

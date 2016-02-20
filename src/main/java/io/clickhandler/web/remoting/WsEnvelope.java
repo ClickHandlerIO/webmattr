@@ -1,5 +1,6 @@
 package io.clickhandler.web.remoting;
 
+import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 
@@ -7,54 +8,115 @@ import jsinterop.annotations.JsType;
  * Wasabi Envelope
  */
 @JsType(isNative = true)
-public interface WsEnvelope {
-    @JsProperty(name = "m")
-    int getMethod();
+public class WsEnvelope {
+    protected WsEnvelope() {
+    }
 
     @JsProperty(name = "m")
-    void setMethod(int method);
+    protected native double getM();
+
+    @JsProperty(name = "m")
+    protected native void setM(double m);
 
     @JsProperty(name = "i")
-    int getId();
+    protected native double getI();
 
     @JsProperty(name = "i")
-    void setId(int id);
+    protected native void setI(double i);
 
     @JsProperty(name = "c")
-    int getCode();
+    protected native double getC();
 
     @JsProperty(name = "c")
-    void setCode(int code);
+    protected native void setC(double c);
 
     @JsProperty(name = "t")
-    String getType();
+    protected native String getT();
 
     @JsProperty(name = "t")
-    void setType(String type);
+    protected native void setT(String t);
 
     @JsProperty(name = "b")
-    String getBody();
+    protected native String getB();
 
     @JsProperty(name = "b")
-    void setBody(String body);
+    protected native void setB(String c);
 
-    class Factory {
+    @JsOverlay
+    public final double method() {
+        return this.getM();
+    }
+
+    @JsOverlay
+    public final double id() {
+        return this.getI();
+    }
+
+    @JsOverlay
+    public final double code() {
+        return this.getC();
+    }
+
+    @JsOverlay
+    public final String type() {
+        return this.getT();
+    }
+
+    @JsOverlay
+    public final String body() {
+        return this.getB();
+    }
+
+    @JsOverlay
+    public final WsEnvelope method(final double method) {
+        this.setM(method);
+        return this;
+    }
+
+    @JsOverlay
+    public final WsEnvelope id(final double id) {
+        this.setI(id);
+        return this;
+    }
+
+    @JsOverlay
+    public final WsEnvelope code(final double code) {
+        this.setC(code);
+        return this;
+    }
+
+    @JsOverlay
+    public final WsEnvelope type(final String type) {
+        this.setT(type);
+        return this;
+    }
+
+    @JsOverlay
+    public final WsEnvelope body(final String body) {
+        this.setB(body);
+        return this;
+    }
+
+    public static class Factory {
         public static native WsEnvelope create() /*-{
             return {};
         }-*/;
 
-        public static WsEnvelope create(int method, int id, int code, String type, String body) {
-            final WsEnvelope envelope = create();
-            envelope.setMethod(method);
-            envelope.setId(id);
-            envelope.setCode(code);
-            envelope.setType(type);
-            envelope.setBody(body);
-            return envelope;
+        public static native WsEnvelope parse(String json) /*-{
+            return $wnd.JSON.parse(json);
+        }-*/;
+
+        public static WsEnvelope create(double method, double id, double code, String type, String body) {
+            return create()
+                .method(method)
+                .id(id)
+                .code(code)
+                .type(type)
+                .body(body);
         }
     }
 
-    class Constants {
+    public static class Constants {
         // Direction
         public static final int OUT = 0;
         public static final int IN = 1;

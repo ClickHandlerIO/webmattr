@@ -7,6 +7,7 @@ import io.clickhandler.web.BusDelegate;
 import io.clickhandler.web.Func;
 import io.clickhandler.web.Try;
 import io.clickhandler.web.action.*;
+import io.clickhandler.web.EventCallback;
 import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsProperty;

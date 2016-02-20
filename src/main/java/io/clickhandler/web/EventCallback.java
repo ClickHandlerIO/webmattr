@@ -1,4 +1,4 @@
-package io.clickhandler.web.action;
+package io.clickhandler.web;
 
 import com.google.gwt.event.shared.EventHandler;
 

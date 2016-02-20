@@ -1,8 +1,0 @@
-package io.clickhandler.web.remoting;
-
-/**
- *
- */
-public class PushEvent {
-
-}

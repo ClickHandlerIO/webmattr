@@ -2,7 +2,6 @@ package io.clickhandler.web;
 
 import com.google.web.bindery.event.shared.EventBus;
 import com.google.web.bindery.event.shared.HandlerRegistration;
-import io.clickhandler.web.action.EventCallback;
 
 import java.util.ArrayList;
 

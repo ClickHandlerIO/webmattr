@@ -55,6 +55,7 @@
         <gwt.version>2.8.0-beta1</gwt.version>
         <dagger-gwt.version>0.1.0-SNAPSHOT</dagger-gwt.version>
         <maven-compiler-plugin.version>3.3</maven-compiler-plugin.version>
+        <maven-source-plugin.version>3.0.0</maven-source-plugin.version>
         <maven-resources-plugin.version>2.5</maven-resources-plugin.version>
         <maven-gpg-plugin.version>1.6</maven-gpg-plugin.version>
         <nexus-staging-maven-plugin.version>1.6.6</nexus-staging-maven-plugin.version>
@@ -151,6 +152,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-source-plugin</artifactId>
+                        <version>${maven-source-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>attach-sources</id>

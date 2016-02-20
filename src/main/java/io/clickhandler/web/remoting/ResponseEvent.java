@@ -3,11 +3,11 @@ package io.clickhandler.web.remoting;
 /**
  *
  */
-public class InOut<IN, OUT> {
+public class ResponseEvent<IN, OUT> {
     private final IN in;
     private final OUT out;
 
-    public InOut(IN in, OUT out) {
+    public ResponseEvent(IN in, OUT out) {
         this.in = in;
         this.out = out;
     }

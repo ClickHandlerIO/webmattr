@@ -272,7 +272,7 @@ public abstract class Component<P, S> {
     protected abstract ReactElement render(final ReactComponent<P, S> $this, P props, S state);
 
     @JsIgnore
-    private void componentWillMount0(final ReactComponent $this) {
+    private void componentWillMount0(final ReactComponent<P, S> $this) {
         if ($this != null) {
             Reflection.set($this, React.BUS, new BusDelegate(bus));
             Reflection.set($this, React.ACTION_CALLS, new ActionCalls());

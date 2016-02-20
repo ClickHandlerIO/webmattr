@@ -19,8 +19,8 @@ public class WsDispatcher {
     private final Bus bus;
     private final String url;
     private final Queue<Outgoing> pendingQueue = new LinkedList<>();
-    private final LinkedHashMap<Integer, Outgoing> calls = new LinkedHashMap<>();
-    private final Map<String, Subscription> subMap = new HashMap<>();
+    private final LinkedHashMap<Double, Outgoing> calls = new LinkedHashMap<>();
+    private final Map<String, AddressSubscription> subMap = new HashMap<>();
     private Ws webSocket;
     private int reaperMillis = 500;
     private Timer reaperTimer;
@@ -43,25 +43,52 @@ public class WsDispatcher {
         return webSocket;
     }
 
+    /**
+     *
+     * @param subscription
+     * @param <T>
+     * @return
+     */
     @SuppressWarnings("unchecked")
-    public <T> HandlerRegistration subscribe(PushAddress<T> address, Func.Run1<T> callback) {
-        if (address == null || callback == null)
+    public <T> HandlerRegistration subscribe(PushSubscription<T> subscription) {
+        if (subscription == null)
             return null;
 
-        final String addr = address.getAddress();
+        final String addr = subscription.getAddress();
         if (addr == null || addr.isEmpty()) {
             return null;
         }
 
-        Subscription<T> registration = subMap.get(addr);
+        AddressSubscription addressSubscription = subMap.get(addr);
 
-        if (registration == null) {
-            registration = new Subscription<>(addr, address.getTypeName());
-            subMap.put(addr, registration);
+        if (addressSubscription == null) {
+            addressSubscription = new AddressSubscription<>(
+                addr,
+                subscription.getPublisher(),
+                subscription.getTypeName(),
+                subscription.getScopedTypeName());
+            subMap.put(addr, addressSubscription);
         }
 
-        registration.subscribe(callback);
-        return registration;
+        return addressSubscription.subscribe(subscription);
+    }
+
+    public <T> void simulatePush(String address, T event) {
+        final WsEnvelope envelope = WsEnvelope.Factory.create()
+            .method(WsEnvelope.Constants.PUSH)
+            .type(address)
+            .body(JSON.stringify(event))
+            .code(200);
+
+        data(JSON.stringify(envelope));
+    }
+
+    public void simulateData(String json) {
+        data(json);
+    }
+
+    public void simulate(WsEnvelope envelope) {
+        if (envelope != null) data(JSON.stringify(envelope));
     }
 
     /**
@@ -133,7 +160,7 @@ public class WsDispatcher {
      */
     private void data(String payload) {
         // Parse envelope.
-        final WsEnvelope envelope = JSON.parse(payload);
+        final WsEnvelope envelope = WsEnvelope.Factory.parse(payload);
 
         if (envelope == null) {
             return;
@@ -142,13 +169,13 @@ public class WsDispatcher {
         // Publish a new WsEnvelopeEvent to the Bus.
         bus.publish(new WsEnvelopeEvent(this, envelope));
 
-        switch (envelope.getMethod()) {
+        switch ((int) envelope.method()) {
             case WsEnvelope.Constants.IN:
                 // Incoming request.
                 break;
             case WsEnvelope.Constants.OUT:
                 // It's a response.
-                final Outgoing call = calls.remove(envelope.getId());
+                final Outgoing call = calls.remove(envelope.id());
                 if (call != null) {
                     Try.silent(call.callback, envelope);
                 }
@@ -156,19 +183,19 @@ public class WsDispatcher {
             case WsEnvelope.Constants.PUSH:
                 // It's a push event.
                 // Fire on main event bus.
-                String type = envelope.getType();
+                String type = envelope.type();
                 if (type == null) type = "";
                 else type = type.trim();
 
-                String body = envelope.getBody();
+                String body = envelope.body();
                 if (body == null) body = "";
                 else body = body.trim();
 
                 if (body.isEmpty()) body = "{}";
 
-                final Subscription subscription = subMap.get(type);
-                if (subscription != null) {
-                    subscription.dispatch(JSON.parse(body));
+                final AddressSubscription addressSubscription = subMap.get(type);
+                if (addressSubscription != null) {
+                    addressSubscription.receive(body);
                 }
                 break;
         }
@@ -183,7 +210,7 @@ public class WsDispatcher {
             pendingQueue.add(call);
         } else {
             try {
-                calls.put(call.envelope.getId(), call);
+                calls.put(call.envelope.id(), call);
 
                 try {
                     webSocket.send(JSON.stringify(call.envelope));
@@ -355,18 +382,24 @@ public class WsDispatcher {
      * Multiple local listeners may be registered.
      * It automatically subscribes with the server upon the first local listener and un-subscribes when
      * the last local listener is removed.
-     *
-     * @param <T>
      */
-    private class Subscription<T> implements HandlerRegistration {
+    private class AddressSubscription<T> implements HandlerRegistration {
         private final String name;
+        private final PushPublisher<T> publisher;
         private final Bus.TypeName<T> typeName;
+        private final Bus.TypeName<T> scopedTypeName;
         private SubState state = SubState.NOT_REGISTERED;
-        private ArrayList<LocalSub> subs = new ArrayList<>();
 
-        public Subscription(String name, Bus.TypeName<T> typeName) {
+        private ArrayList<PushSubscription> subs = new ArrayList<>();
+
+        public AddressSubscription(String name,
+                                   PushPublisher<T> publisher,
+                                   Bus.TypeName<T> typeName,
+                                   Bus.TypeName<T> scopedTypeName) {
             this.name = name;
+            this.publisher = publisher;
             this.typeName = typeName;
+            this.scopedTypeName = scopedTypeName;
             subscribe();
         }
 
@@ -375,12 +408,12 @@ public class WsDispatcher {
          */
         @Override
         public void removeHandler() {
-            final Subscription subscription = subMap.remove(name);
-            if (subscription == null) {
+            final AddressSubscription addressSubscription = subMap.remove(name);
+            if (addressSubscription == null) {
                 return;
             }
 
-            for (LocalSub sub : subs) {
+            for (PushSubscription sub : subs) {
                 sub.removeHandler();
             }
 
@@ -394,7 +427,7 @@ public class WsDispatcher {
                     new Date().getTime(),
                     DEFAULT_SUB_TIMEOUT,
                     WsEnvelope.Factory.create(WsEnvelope.Constants.USUB, nextId(), 0, name, null),
-                    envelope -> setState(envelope.getCode() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED),
+                    envelope -> setState(envelope.code() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED),
                     () -> setState(SubState.NOT_REGISTERED)
                 )
             );
@@ -427,65 +460,41 @@ public class WsDispatcher {
                     WsEnvelope.Factory.create(WsEnvelope.Constants.SUB, nextId(), 0, name, null),
                     envelope -> {
                         // Was it a valid subscription.
-                        if (envelope.getCode() == 404) {
+                        if (envelope.code() == 404) {
                             removeHandler();
                             return;
                         }
-                        setState(envelope.getCode() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED);
+                        setState(envelope.code() == 200 ? SubState.REGISTERED : SubState.NOT_REGISTERED);
                     },
                     () -> setState(SubState.NOT_REGISTERED)
                 )
             );
         }
 
-        /**
-         * @param event
-         */
-        public void dispatch(T event) {
-            bus.publish(typeName, event);
-
-            Try.later(() -> {
-                for (LocalSub sub : subs) {
-                    sub.callback.run(event);
-                }
-            });
+        public void receive(String json) {
+            publisher.publish(bus, typeName, scopedTypeName, json);
         }
 
         /**
-         * @param callback
+         * @param subscription
          * @return
          */
-        public HandlerRegistration subscribe(Func.Run1<T> callback) {
-            final LocalSub sub = new LocalSub(callback);
-            subs.add(sub);
-            return sub;
+        public HandlerRegistration subscribe(PushSubscription subscription) {
+            subs.add(subscription);
+            subscription.dispatcherReg = () -> unsubscribe(subscription);
+            subscription.subscribe(bus);
+            return subscription;
         }
 
         /**
          * @param sub
          */
-        private void unsubscribe(LocalSub sub) {
+        private void unsubscribe(PushSubscription sub) {
             subs.remove(sub);
+            sub.removeHandler();
 
-            if (subs.isEmpty()) {
+            if (subs.isEmpty())
                 removeHandler();
-            }
-        }
-
-        /**
-         *
-         */
-        private class LocalSub implements HandlerRegistration {
-            private final Func.Run1<T> callback;
-
-            public LocalSub(Func.Run1<T> callback) {
-                this.callback = callback;
-            }
-
-            @Override
-            public void removeHandler() {
-                unsubscribe(this);
-            }
         }
     }
 }

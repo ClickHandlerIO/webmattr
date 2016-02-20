@@ -46,6 +46,20 @@ public class Reflection {
     /**
      * @param obj
      * @param name
+     * @param args
+     * @param <T>
+     * @return
+     */
+    public static native <T> T call(Object obj, String name, Object... args) /*-{
+        if (!obj) {
+            return null;
+        }
+        return obj[name]();
+    }-*/;
+
+    /**
+     * @param obj
+     * @param name
      * @param <T>
      * @return
      */
