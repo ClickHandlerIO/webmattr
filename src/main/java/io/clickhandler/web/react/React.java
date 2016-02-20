@@ -19,6 +19,15 @@ public class React {
     public static final String GET_STATE = "$getState$";
     public static final String PROPS = "props";
     public static final String STATE = "state";
+    public static final String REGISTER = "$register$";
+    public static final String SUBSCRIBE_1 = "$subscribe1$";
+    public static final String SUBSCRIBE_2 = "$subscribe2$";
+    public static final String SUBSCRIBE_3 = "$subscribe3$";
+    public static final String PUBLISH_1 = "$publish1$";
+    public static final String PUBLISH_2 = "$publish2$";
+    public static final String PUBLISH_3 = "$publish3$";
+    public static final String CLEANUP = "$cleanup$";
+    public static final String DISPATCH = "$dispatch$";
 
     public static void init() {
         final Resources bundle = Resources.INSTANCE;

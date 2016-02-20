@@ -1,19 +1,18 @@
 package io.clickhandler.web.react;
 
+import com.google.web.bindery.event.shared.HandlerRegistration;
 import elemental.client.Browser;
 import elemental.dom.Document;
 import elemental.html.Console;
 import elemental.html.Window;
-import io.clickhandler.web.Bus;
-import io.clickhandler.web.BusDelegate;
-import io.clickhandler.web.Func;
-import io.clickhandler.web.Reflection;
+import io.clickhandler.web.*;
 import io.clickhandler.web.action.AbstractAction;
+import io.clickhandler.web.action.ActionBuilder;
 import io.clickhandler.web.action.ActionCall;
 import io.clickhandler.web.action.ActionCalls;
-import io.clickhandler.web.action.ActionBuilder;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.router.History;
+import jsinterop.annotations.JsFunction;
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
@@ -281,8 +280,100 @@ public abstract class Component<P, S> {
             Reflection.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> Reflection.get($this, name));
             Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
             Reflection.set($this, React.SET_REF, (Func.Run2<Ref, Object>) (ref, value) -> ref.set($this, value));
+            Reflection.set($this, React.REGISTER, (Func.Run1<HandlerRegistration>) handlerRegistration -> $this.getBus().register(handlerRegistration));
+            Reflection.set($this, React.SUBSCRIBE_1, new Subscribe1() {
+                @Override
+                public <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback) {
+                    return $this.getBus().subscribe(eventClass, callback);
+                }
+            });
+            Reflection.set($this, React.SUBSCRIBE_2, new Subscribe2() {
+                @Override
+                public <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback) {
+                    return $this.getBus().subscribe(named, callback);
+                }
+            });
+            Reflection.set($this, React.SUBSCRIBE_3, new Subscribe3() {
+                @Override
+                public <T> HandlerRegistration subscribe(String name, EventCallback<T> callback) {
+                    return $this.getBus().subscribe(name, callback);
+                }
+            });
+            Reflection.set($this, React.PUBLISH_1, new Publish1() {
+                @Override
+                public <T> void publish(T event) {
+                    $this.getBus().publish(event);
+                }
+            });
+            Reflection.set($this, React.PUBLISH_2, new Publish2() {
+                @Override
+                public <T> void publish(Bus.TypeName<T> name, T event) {
+                    $this.getBus().publish(name, event);
+                }
+            });
+            Reflection.set($this, React.PUBLISH_3, new Publish3() {
+                @Override
+                public <T> void publish(String name, T event) {
+                    $this.getBus().publish(name, event);
+                }
+            });
+            Reflection.set($this, React.CLEANUP, (Func.Run) () -> {
+                final BusDelegate bus = $this.getBus();
+                if (bus != null) {
+                    bus.clear();
+                }
+
+                final ActionCalls calls = $this.getActionCalls();
+                if (calls != null) {
+                    Try.silent(calls::clear);
+                }
+            });
+            Reflection.set($this, React.DISPATCH, new Dispatch() {
+                @Override
+                public <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action) {
+                    ActionCalls calls = $this.getActionCalls();
+                    if (calls == null) {
+                        calls = new ActionCalls();
+                        Reflection.set($this, React.ACTION_CALLS, calls);
+                    }
+
+                    final ActionCall<IN, OUT> call = ActionBuilder.action(action);
+                    calls.add(call);
+                    return call;
+                }
+            });
         }
         componentWillMount($this, getProps($this), getState($this));
+    }
+
+    @JsFunction
+    private interface Subscribe1 {
+        <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback);
+    }
+
+    @JsFunction
+    private interface Subscribe2 {
+        <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback);
+    }
+
+    @JsFunction
+    private interface Subscribe3 {
+        <T> HandlerRegistration subscribe(String name, EventCallback<T> callback);
+    }
+
+    @JsFunction
+    private interface Publish1 {
+        <T> void publish(T event);
+    }
+
+    @JsFunction
+    private interface Publish2 {
+        <T> void publish(Bus.TypeName<T> name, T event);
+    }
+
+    @JsFunction
+    private interface Publish3 {
+        <T> void publish(String name, T event);
     }
 
     private <H extends AbstractAction<IN, OUT>, IN, OUT> Func.Call1<ActionCall<IN, OUT>, Provider<H>> action() {
@@ -304,7 +395,7 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
-    private void componentDidMount0(final ReactComponent<P, S> $this) {
+    private void componentDidMount0(final ReactComponent $this) {
         componentDidMount($this);
     }
 
@@ -381,17 +472,17 @@ public abstract class Component<P, S> {
     protected void componentWillUnmount(final ReactComponent<P, S> $this) {
     }
 
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Factory Methods
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
     public Object getReactClass() {
         if (reactClass == null) {
             reactClass = React.createClass(this);
         }
         return reactClass;
     }
+
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Factory Methods
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
 
     protected P props() {
         // Create Props.
@@ -515,6 +606,11 @@ public abstract class Component<P, S> {
             childCallback.run(childList);
         }
         return React.createElement(getReactClass(), props, childList.toArray());
+    }
+
+    @JsFunction
+    private interface Dispatch {
+        <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action);
     }
 
     @JsType

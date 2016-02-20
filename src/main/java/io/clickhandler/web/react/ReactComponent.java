@@ -19,26 +19,18 @@ import javax.inject.Provider;
  * Internal React Component class.
  */
 @JsType(isNative = true)
-public final class ReactComponent<P, S> {
-    private ReactComponent() {
-    }
+public interface ReactComponent<P, S> {
+    @JsProperty(name = React.BUS)
+    BusDelegate getBus();
 
     @JsProperty(name = React.BUS)
-    protected native BusDelegate getBus();
-
-    @JsProperty(name = React.BUS)
-    native void setBus(BusDelegate bus);
+    void setBus(BusDelegate bus);
 
     @JsProperty(name = React.ACTION_CALLS)
-    protected native ActionCalls getActionCalls();
+    ActionCalls getActionCalls();
 
-    @JsProperty(name = React.ACTION_CALLS)
-    native void setActionCalls(ActionCalls actionCalls);
-
-    @JsOverlay
-    public final void register(HandlerRegistration handlerRegistration) {
-        getBus().register(handlerRegistration);
-    }
+    @JsMethod(name = React.REGISTER)
+    void register(HandlerRegistration handlerRegistration);
 
     /**
      * @param eventClass
@@ -46,10 +38,8 @@ public final class ReactComponent<P, S> {
      * @param <T>
      * @return
      */
-    @JsOverlay
-    public final <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback) {
-        return getBus().subscribe(eventClass, callback);
-    }
+    @JsMethod(name = React.SUBSCRIBE_1)
+    <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback);
 
     /**
      * @param named
@@ -57,10 +47,8 @@ public final class ReactComponent<P, S> {
      * @param <T>
      * @return
      */
-    @JsOverlay
-    public final <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback) {
-        return getBus().subscribe(named, callback);
-    }
+    @JsMethod(name = React.SUBSCRIBE_2)
+    <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback);
 
     /**
      * @param name
@@ -68,102 +56,72 @@ public final class ReactComponent<P, S> {
      * @param <T>
      * @return
      */
-    @JsOverlay
-    public final <T> HandlerRegistration subscribe(String name, EventCallback<T> callback) {
-        return getBus().subscribe(name, callback);
-    }
+    @JsMethod(name = React.SUBSCRIBE_3)
+    <T> HandlerRegistration subscribe(String name, EventCallback<T> callback);
 
     /**
      * @param event
      * @param <T>
      */
-    @JsOverlay
-    public final <T> void publish(T event) {
-        getBus().publish(event);
-    }
+    @JsMethod(name = React.PUBLISH_1)
+    <T> void publish(T event);
 
-    @JsOverlay
-    public final <T> void publish(Bus.TypeName<T> name, T event) {
-        getBus().publish(name, event);
-    }
+    @JsMethod(name = React.PUBLISH_2)
+    <T> void publish(Bus.TypeName<T> name, T event);
 
-    @JsOverlay
-    public final <T> void publish(String name, T event) {
-        getBus().publish(name, event);
-    }
+    @JsMethod(name = React.PUBLISH_3)
+    <T> void publish(String name, T event);
 
-    @JsOverlay
-    public final void cleanup() {
-        final BusDelegate bus = getBus();
-        if (bus != null) {
-            bus.clear();
-            setBus(null);
-        }
+    @JsMethod(name = React.CLEANUP)
+    void cleanup();
 
-        final ActionCalls calls = getActionCalls();
-        if (calls != null) {
-            Try.silent(() -> calls.clear());
-            setActionCalls(null);
-        }
-    }
-
-    @JsOverlay
-    public final <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action) {
-        ActionCalls calls = getActionCalls();
-        if (calls == null) {
-            calls = new ActionCalls();
-            setActionCalls(calls);
-        }
-
-        final ActionCall<IN, OUT> call = ActionBuilder.action(action);
-        calls.add(call);
-        return call;
-    }
+    @JsMethod(name = React.DISPATCH)
+    <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action);
 
     @JsMethod(name = React.ACTION)
-    public native <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> action(
+    <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> action(
         Provider<H> action
     );
 
     @JsMethod(name = React.GET_REF)
-    public native <T extends Element> T ref(Ref<T> ref);
+    <T extends Element> T ref(Ref<T> ref);
 
     @JsMethod(name = React.GET_PROPERTY)
-    public native <T> T getProperty(String name);
+    <T> T getProperty(String name);
 
     @JsMethod(name = React.GET_PROPS)
-    public native P getProps();
+    P getProps();
 
     @JsMethod(name = React.GET_PROPS)
-    public native P props();
+    P props();
 
     @JsMethod(name = React.GET_STATE)
-    public native S getState();
+    S getState();
 
     /**
      * @param state
      */
     @JsMethod
-    public native void setState(Object state);
+    void setState(Object state);
 
     @JsMethod(name = React.GET_STATE)
-    public native S state();
+    S state();
 
     /**
      * @param state
      */
     @JsMethod
-    public native void setState(Object state, Func.Run callback);
+    void setState(Object state, Func.Run callback);
 
     @JsMethod
-    public native void replaceState(Object state);
+    void replaceState(Object state);
 
     @JsMethod
-    public native void replaceState(Object state, Func.Run callback);
+    void replaceState(Object state, Func.Run callback);
 
     @JsMethod
-    public native void forceUpdate();
+    void forceUpdate();
 
     @JsMethod
-    public native void forceUpdate(Func.Run callback);
+    void forceUpdate(Func.Run callback);
 }
