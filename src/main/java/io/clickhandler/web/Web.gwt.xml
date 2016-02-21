@@ -10,6 +10,12 @@
     <inherits name="javax.inject.Inject"/>
     <inherits name="dagger.Dagger"/>
 
+    <!--super dev mode detection-->
+    <replace-with class='io.clickhandler.web.util.SuperDevModeActiveIndicator'>
+        <when-type-is class='io.clickhandler.web.util.SuperDevModeIndicator'/>
+        <when-property-is name='superdevmode' value='on'/>
+    </replace-with>
+
     <source path=""/>
 
 </module>
