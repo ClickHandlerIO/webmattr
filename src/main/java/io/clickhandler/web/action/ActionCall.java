@@ -1,5 +1,7 @@
 package io.clickhandler.web.action;
 
+import com.google.web.bindery.event.shared.HandlerRegistration;
+import io.clickhandler.web.BusDelegate;
 import io.clickhandler.web.Func;
 import io.clickhandler.web.Try;
 
@@ -10,8 +12,8 @@ import javax.inject.Provider;
  *
  * @author Clay Molocznik
  */
-public class ActionCall<IN, OUT> {
-    ActionCalls scope;
+public class ActionCall<IN, OUT> implements HandlerRegistration {
+    HandlerRegistration reg;
     private IN request;
     private ErrorCallback errorCallback;
     private ResponseCallback<OUT> response;
@@ -19,12 +21,40 @@ public class ActionCall<IN, OUT> {
     private AlwaysCallback alwaysCallback;
     private boolean wasDispatched;
     private Func.Run1<IN> dispatch;
+    private Func.Run disposedCallback;
     private Provider<IN> requestProvider;
     private int timeoutMillis;
+    private boolean disposed;
 
     ActionCall(Func.Run1<IN> dispatch, Provider<IN> requestProvider) {
         this.dispatch = dispatch;
         this.requestProvider = requestProvider;
+    }
+
+    /**
+     * @param action
+     * @param <H>
+     * @param <IN>
+     * @param <OUT>
+     * @return
+     */
+    public static <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> create(Provider<H> action) {
+        return create(action.get());
+    }
+
+    public static <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> create(H action) {
+        return create(null, action);
+    }
+
+    public static <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> create(BusDelegate bus, Provider<H> action) {
+        return create(bus, action.get());
+    }
+
+    public static <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> create(BusDelegate bus, H action) {
+        final ActionCall<IN, OUT> call = action.build();
+        if (bus != null)
+            call.reg = bus.register(call);
+        return call;
     }
 
     public int timeoutMillis() {
@@ -94,6 +124,11 @@ public class ActionCall<IN, OUT> {
      */
     public ActionCall<IN, OUT> always(AlwaysCallback alwaysCallback) {
         this.alwaysCallback = alwaysCallback;
+        return this;
+    }
+
+    public ActionCall<IN, OUT> disposed(Func.Run disposedCallback) {
+        this.disposedCallback = disposedCallback;
         return this;
     }
 
@@ -176,24 +211,26 @@ public class ActionCall<IN, OUT> {
     }
 
     public void cleanup() {
-        cleanup(false);
+        if (disposed) return;
+        disposed = true;
+
+        if (reg != null)
+            Try.silent(() -> reg.removeHandler());
+        reg = null;
+
+        requestProvider = null;
+        errorCallback = null;
+        dispatch = null;
+        willSend = null;
+
+        Try.silent(this::always);
+
+        if (disposedCallback != null)
+            Try.silent(disposedCallback);
     }
 
-    void cleanup(boolean forced) {
-        try {
-            requestProvider = null;
-            errorCallback = null;
-            dispatch = null;
-            willSend = null;
-            always();
-        } finally {
-            try {
-                if (scope != null && !forced) {
-                    scope.remove(this);
-                }
-            } finally {
-                scope = null;
-            }
-        }
+    @Override
+    public void removeHandler() {
+        cleanup();
     }
 }

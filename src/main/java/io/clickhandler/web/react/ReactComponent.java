@@ -26,11 +26,8 @@ public interface ReactComponent<P, S> {
     @JsProperty(name = React.BUS)
     void setBus(BusDelegate bus);
 
-    @JsProperty(name = React.ACTION_CALLS)
-    ActionCalls getActionCalls();
-
     @JsMethod(name = React.REGISTER)
-    void register(HandlerRegistration handlerRegistration);
+    HandlerRegistration register(HandlerRegistration handlerRegistration);
 
     /**
      * @param eventClass

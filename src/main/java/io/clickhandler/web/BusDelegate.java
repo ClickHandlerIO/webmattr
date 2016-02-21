@@ -6,15 +6,23 @@ import com.google.web.bindery.event.shared.HandlerRegistration;
 import java.util.ArrayList;
 
 /**
+ * Keeps track of local subscriptions which may be removed all at once.
+ * Useful for synchronizing to an Object's Lifecycle. (e.g. Component)
  *
+ * @author Clay Molocznik
  */
-public class BusDelegate {
+public class BusDelegate implements HandlerRegistration {
     private final Bus delegate;
-
-    private final ArrayList<HandlerRegistration> registrations = new ArrayList<>();
+    private ArrayList<HandlerRegistration> registrations;
 
     public BusDelegate(Bus delegate) {
         this.delegate = delegate;
+    }
+
+    private ArrayList<HandlerRegistration> getRegistrations() {
+        if (registrations == null)
+            registrations = new ArrayList<>();
+        return registrations;
     }
 
     /**
@@ -54,24 +62,39 @@ public class BusDelegate {
         return register(delegate.subscribe(name, callback));
     }
 
+    /**
+     * @param registration
+     * @return
+     */
     public HandlerRegistration register(HandlerRegistration registration) {
         if (registration == null) return null;
-        HandlerRegistration r = new HandlerRegistration() {
+
+        final HandlerRegistration r = new HandlerRegistration() {
             @Override
             public void removeHandler() {
                 registrations.remove(this);
                 registration.removeHandler();
             }
         };
-        registrations.add(r);
+        getRegistrations().add(r);
         return r;
     }
 
+    @Override
+    public void removeHandler() {
+        clear();
+    }
+
+    /**
+     *
+     */
     public void clear() {
+        if (registrations == null) return;
         for (HandlerRegistration registration : registrations) {
-            Try.silent(() -> registration.removeHandler());
+            Try.silent(registration::removeHandler);
         }
         registrations.clear();
+        registrations = null;
     }
 
     /**
@@ -82,10 +105,20 @@ public class BusDelegate {
         delegate.publish(event);
     }
 
+    /**
+     * @param name
+     * @param event
+     * @param <T>
+     */
     public <T> void publish(Bus.TypeName<T> name, T event) {
         delegate.publish(name, event);
     }
 
+    /**
+     * @param name
+     * @param event
+     * @param <T>
+     */
     public <T> void publish(String name, T event) {
         delegate.publish(name, event);
     }

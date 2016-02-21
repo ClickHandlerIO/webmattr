@@ -7,9 +7,7 @@ import elemental.html.Console;
 import elemental.html.Window;
 import io.clickhandler.web.*;
 import io.clickhandler.web.action.AbstractAction;
-import io.clickhandler.web.action.ActionBuilder;
 import io.clickhandler.web.action.ActionCall;
-import io.clickhandler.web.action.ActionCalls;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.router.History;
 import jsinterop.annotations.JsFunction;
@@ -107,6 +105,11 @@ public abstract class Component<P, S> {
         stateType = provider.get();
     }
 
+    /**
+     * Ensure access to the bus is private.
+     *
+     * @return
+     */
     private Bus bus() {
         return bus;
     }
@@ -274,7 +277,6 @@ public abstract class Component<P, S> {
     private void componentWillMount0(final ReactComponent<P, S> $this) {
         if ($this != null) {
             Reflection.set($this, React.BUS, new BusDelegate(bus));
-            Reflection.set($this, React.ACTION_CALLS, new ActionCalls());
             Reflection.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
             Reflection.set($this, React.GET_STATE, (Func.Call<S>) () -> getState($this));
             Reflection.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> Reflection.get($this, name));
@@ -322,65 +324,22 @@ public abstract class Component<P, S> {
                 if (bus != null) {
                     bus.clear();
                 }
-
-                final ActionCalls calls = $this.getActionCalls();
-                if (calls != null) {
-                    Try.silent(calls::clear);
-                }
             });
             Reflection.set($this, React.DISPATCH, new Dispatch() {
                 @Override
                 public <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action) {
-                    ActionCalls calls = $this.getActionCalls();
-                    if (calls == null) {
-                        calls = new ActionCalls();
-                        Reflection.set($this, React.ACTION_CALLS, calls);
-                    }
-
-                    final ActionCall<IN, OUT> call = ActionBuilder.action(action);
-                    calls.add(call);
-                    return call;
+                    return ActionCall.create($this.getBus(), action);
                 }
             });
         }
         componentWillMount($this, getProps($this), getState($this));
     }
 
-    @JsFunction
-    private interface Subscribe1 {
-        <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback);
-    }
-
-    @JsFunction
-    private interface Subscribe2 {
-        <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback);
-    }
-
-    @JsFunction
-    private interface Subscribe3 {
-        <T> HandlerRegistration subscribe(String name, EventCallback<T> callback);
-    }
-
-    @JsFunction
-    private interface Publish1 {
-        <T> void publish(T event);
-    }
-
-    @JsFunction
-    private interface Publish2 {
-        <T> void publish(Bus.TypeName<T> name, T event);
-    }
-
-    @JsFunction
-    private interface Publish3 {
-        <T> void publish(String name, T event);
-    }
-
     private <H extends AbstractAction<IN, OUT>, IN, OUT> Func.Call1<ActionCall<IN, OUT>, Provider<H>> action() {
         return new Func.Call1<ActionCall<IN, OUT>, Provider<H>>() {
             @Override
             public ActionCall<IN, OUT> call(Provider<H> value) {
-                return ActionBuilder.action(value);
+                return ActionCall.create(value);
             }
         };
     }
@@ -479,11 +438,6 @@ public abstract class Component<P, S> {
         return reactClass;
     }
 
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Factory Methods
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
     protected P props() {
         // Create Props.
         final P props = propsProvider.get();
@@ -557,6 +511,11 @@ public abstract class Component<P, S> {
         return React.createElement(getReactClass(), props, childList.toArray());
     }
 
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Factory Methods
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+
     /**
      * @param callback
      * @return
@@ -606,6 +565,36 @@ public abstract class Component<P, S> {
             childCallback.run(childList);
         }
         return React.createElement(getReactClass(), props, childList.toArray());
+    }
+
+    @JsFunction
+    private interface Subscribe1 {
+        <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback);
+    }
+
+    @JsFunction
+    private interface Subscribe2 {
+        <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback);
+    }
+
+    @JsFunction
+    private interface Subscribe3 {
+        <T> HandlerRegistration subscribe(String name, EventCallback<T> callback);
+    }
+
+    @JsFunction
+    private interface Publish1 {
+        <T> void publish(T event);
+    }
+
+    @JsFunction
+    private interface Publish2 {
+        <T> void publish(Bus.TypeName<T> name, T event);
+    }
+
+    @JsFunction
+    private interface Publish3 {
+        <T> void publish(String name, T event);
     }
 
     @JsFunction
