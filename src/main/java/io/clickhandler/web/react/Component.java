@@ -26,20 +26,12 @@ public abstract class Component<P, S> {
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Lifecycle
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
-    private final Func.Run1<P> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
+    private Func.Run2<Object, Object> componentDidUpdate = Func.bind(this::componentDidUpdate0);
     @JsProperty
-    private final Func.Run2<P, S> componentWillUpdate = Func.bind(this::componentWillUpdate0);
+    private Func.Run componentDidMount = Func.bind(this::componentDidMount0);
     @JsProperty
-    private final Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
-    @JsProperty
-    private final Func.Run componentDidMount = Func.bind(this::componentDidMount0);
-    @JsProperty
-    private final Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
+    private Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Defaults
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -51,23 +43,30 @@ public abstract class Component<P, S> {
     // Props
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     private Provider<P> propsProvider;
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Lifecycle
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
-    private final Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
+    private Func.Run1<Object> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
+    @JsProperty
+    private Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
     private P propsType;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // State
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     private Provider<S> stateProvider;
     @JsProperty
-    private final Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
+    private Func.Run2<Object, Object> componentWillUpdate = Func.bind(this::componentWillUpdate0);
     @JsProperty
-    private final Func.Call<S> getInitialState = Func.bind(this::getInitialState);
+    private Func.Call<S> getInitialState = Func.bind(this::getInitialState);
+    @JsProperty
+    private Func.Call2<Boolean, Object, Object> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
     private S stateType;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Render
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
-    private final Func.Call<ReactElement> render = Func.bind(this::render0);
+    private Func.Call<ReactElement> render = Func.bind(this::render0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -81,6 +80,14 @@ public abstract class Component<P, S> {
         addContextTypes(contextTypes);
         displayName = getDisplayName();
     }
+
+    protected void wire() {
+    }
+
+//    @JsFunction
+//    private interface ShouldComponentUpdate {
+//        boolean call();
+//    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Build Context Types Object.
@@ -214,7 +221,7 @@ public abstract class Component<P, S> {
      * @param nextState the state object that the component will receive
      */
     @JsIgnore
-    protected boolean shouldComponentUpdate0(final ReactComponent<P, S> $this, Object nextProps, Object nextState) {
+    protected boolean shouldComponentUpdate0(final ReactComponent $this, Object nextProps, Object nextState) {
         return shouldComponentUpdate(
             $this,
             Reflection.copy(nextProps, propsProvider.get()),
@@ -274,7 +281,7 @@ public abstract class Component<P, S> {
     protected abstract ReactElement render(final ReactComponent<P, S> $this, P props, S state);
 
     @JsIgnore
-    private void componentWillMount0(final ReactComponent<P, S> $this) {
+    protected void componentWillMount0(final ReactComponent<P, S> $this) {
         if ($this != null) {
             Reflection.set($this, React.BUS, new BusDelegate(bus));
             Reflection.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
@@ -335,15 +342,6 @@ public abstract class Component<P, S> {
         componentWillMount($this, getProps($this), getState($this));
     }
 
-    private <H extends AbstractAction<IN, OUT>, IN, OUT> Func.Call1<ActionCall<IN, OUT>, Provider<H>> action() {
-        return new Func.Call1<ActionCall<IN, OUT>, Provider<H>>() {
-            @Override
-            public ActionCall<IN, OUT> call(Provider<H> value) {
-                return ActionCall.create(value);
-            }
-        };
-    }
-
     /**
      * Invoked immediately before rendering occurs.``
      * If you call setState within this method, render() will see the updated state and will be executed only once despite the state change.
@@ -354,7 +352,7 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
-    private void componentDidMount0(final ReactComponent $this) {
+    private void componentDidMount0(final ReactComponent<P, S> $this) {
         componentDidMount($this);
     }
 
@@ -369,8 +367,8 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
-    private void componentWillReceiveProps0(final ReactComponent<P, S> $this, P nextProps) {
-        componentWillReceiveProps($this, nextProps);
+    private void componentWillReceiveProps0(final ReactComponent<P, S> $this, Object nextProps) {
+        componentWillReceiveProps($this, Reflection.copy(nextProps, propsProvider.get()));
     }
 
     /**
@@ -381,13 +379,18 @@ public abstract class Component<P, S> {
      *
      * @param nextProps the props object that the component will receive
      */
+
     @JsIgnore
     protected void componentWillReceiveProps(final ReactComponent<P, S> $this, P nextProps) {
     }
 
     @JsIgnore
-    private void componentWillUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
-        componentWillUpdate($this, nextProps, nextState);
+    protected void componentWillUpdate0(final ReactComponent<P, S> $this, Object nextProps, Object nextState) {
+        componentWillUpdate(
+            $this,
+            Reflection.copy(nextProps, propsProvider.get()),
+            Reflection.copy(nextState, stateProvider.get())
+        );
     }
 
     /**
@@ -402,8 +405,12 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
-    private void componentDidUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
-        componentDidUpdate($this, nextProps, nextState);
+    protected void componentDidUpdate0(final ReactComponent<P, S> $this, Object nextProps, Object nextState) {
+        componentDidUpdate(
+            $this,
+            Reflection.copy(nextProps, propsProvider.get()),
+            Reflection.copy(nextState, stateProvider.get())
+        );
     }
 
     /**
@@ -418,7 +425,7 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
-    private void componentWillUnmount0(final ReactComponent<P, S> $this) {
+    protected void componentWillUnmount0(final ReactComponent<P, S> $this) {
         $this.cleanup();
         componentWillUnmount($this);
     }

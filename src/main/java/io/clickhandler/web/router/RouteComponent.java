@@ -11,7 +11,7 @@ import javax.inject.Provider;
 /**
  *
  */
-public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends RouteProps<A>, S> extends Component<P, S> implements HasRouter {
+public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends RouteProps, S> extends Component<P, S> implements HasRouter {
     @Inject
     Provider<A> argsProvider;
 
@@ -33,6 +33,10 @@ public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends Route
     public void setRouteProxyProvider(Provider<R> routeProxyProvider) {
         this.routeProxyProvider = routeProxyProvider;
         this.routeProxy = routeProxyProvider.get();
+    }
+
+    public A getRouteArgs(P props) {
+        return routeProxy.toArgs(props.getLocation());
     }
 
     @Override

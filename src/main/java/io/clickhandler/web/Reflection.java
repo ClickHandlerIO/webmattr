@@ -136,4 +136,10 @@ public class Reflection {
     public static native String createShortUID() /*-{
         return ("0000" + (Math.random() * Math.pow(36, 4) << 0).toString(36)).slice(-4)
     }-*/;
+
+    public static native boolean isSameType(Object obj1, Object obj2) /*-{
+        if (propsType == null) return obj2 == null;
+        if (obj2 == null) return false;
+        return Object.getPrototypeOf(obj1) == Object.getPrototypeOf(obj2);
+    }-*/;
 }

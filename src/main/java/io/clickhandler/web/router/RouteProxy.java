@@ -425,7 +425,7 @@ public class RouteProxy<T> {
             return args;
         }
 
-        final Object search = location.getSearch();
+        final Object search = location.getQuery();
         if (search == null) {
             return args;
         }
