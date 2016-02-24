@@ -116,11 +116,11 @@ public abstract class Component<P, S> {
      * @param nextState the state object that the component will receive
      */
     @JsIgnore
-    protected boolean shouldComponentUpdate0(final ReactComponent $this, P nextProps, S nextState) {
+    protected boolean shouldComponentUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return shouldComponentUpdate($this, nextProps, nextState);
     }
 
-    protected boolean shouldComponentUpdate(final ReactComponent $this, P nextProps, S nextState) {
+    protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return true;
     }
 
