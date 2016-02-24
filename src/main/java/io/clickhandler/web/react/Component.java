@@ -177,6 +177,13 @@ public abstract class Component<P, S> {
             Reflection.set($this, React.BUS, new BusDelegate(bus));
             Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
             Reflection.set($this, React.SET_REF, (Func.Run2<Ref, Object>) (ref, value) -> ref.set($this, value));
+            Reflection.set($this, React.SET_STATE, (Func.Run1<Func.Run1<S>>) stateCallback -> {
+                final S state = newState();
+                if (stateCallback != null) {
+                    stateCallback.run(state);
+                }
+                $this.setState(state);
+            });
             Reflection.set($this, React.CLEANUP, (Func.Run) () -> {
                 final BusDelegate bus = $this.getBus();
                 if (bus != null) {

@@ -18,9 +18,6 @@ public class RouteProxy<T> {
     // Inject history.
     @Inject
     History history;
-    // Inject Args Provider.
-    @Inject
-    Provider<T> argsProvider;
 
     // Path of this proxy.
     private String path;
@@ -228,13 +225,6 @@ public class RouteProxy<T> {
     }
 
     /**
-     * @return
-     */
-    public Provider<T> getArgsProvider() {
-        return argsProvider;
-    }
-
-    /**
      *
      */
     public void go() {
@@ -288,7 +278,7 @@ public class RouteProxy<T> {
      * @param propsCallback
      */
     public LocationDescriptor buildLocation(Func.Run1<T> propsCallback) {
-        final T props = getArgsProvider().get();
+        final T props = createArgs();
         if (propsCallback != null) {
             propsCallback.run(props);
         }
@@ -412,12 +402,16 @@ public class RouteProxy<T> {
         return sb.length() > 0 ? "?" + sb.toString() : null;
     }
 
+    public native T createArgs() /*-{
+        return {};
+    }-*/;
+
     /**
      * @param location
      * @return
      */
     public T toArgs(Location location) {
-        final T args = argsProvider.get();
+        final T args = createArgs();
 
         if (location == null) {
             return args;
@@ -437,7 +431,7 @@ public class RouteProxy<T> {
      * @return
      */
     public T toArgs(Object query) {
-        final T args = argsProvider.get();
+        final T args = createArgs();
 
         if (query == null) {
             return args;
