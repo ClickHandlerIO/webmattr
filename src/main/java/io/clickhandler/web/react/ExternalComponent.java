@@ -12,16 +12,21 @@ import javax.inject.Provider;
  * @param <P>
  */
 public abstract class ExternalComponent<P> {
-    @Inject
-    Provider<P> propsProvider;
-
     public ExternalComponent() {
+    }
+
+    public native P createProps() /*-{
+        return {};
+    }-*/;
+
+    protected void initProps(P props) {
     }
 
     protected abstract ReactClass<P> reactClass();
 
     protected P defaultProps() {
-        final P props = propsProvider.get();
+        final P props = createProps();
+        initProps(props);
         Reflection.assign(props, reactClass().getDefaultProps());
         applyKey(props);
         return props;

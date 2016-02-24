@@ -209,9 +209,7 @@ public class RouteProxy<T> {
      * @param replaceState
      */
     protected boolean onEnter(RouteProps nextState, ReplaceStateFunction replaceState) {
-        final T args = argsProvider.get();
-        Reflection.assign(args, nextState.getParams());
-        return onEnter(args, nextState, replaceState);
+        return onEnter(toArgs(nextState.getLocation()), nextState, replaceState);
     }
 
     /**

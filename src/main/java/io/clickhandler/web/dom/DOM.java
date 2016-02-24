@@ -2,8 +2,6 @@ package io.clickhandler.web.dom;
 
 import elemental.dom.Element;
 import elemental.html.*;
-import io.clickhandler.web.Reflection;
-import io.clickhandler.web.Try;
 import io.clickhandler.web.react.*;
 import io.clickhandler.web.Func;
 
@@ -17,7 +15,7 @@ public interface DOM {
     static <T> HTMLProps<T> props(String tagName) {
         final HTMLProps<T> props = new HTMLProps<>();
 
-        props.key = ChildCounter.get().newKey();
+        props.key(ChildCounter.get().newKey());
 
         return props;
     }
@@ -116,7 +114,7 @@ public interface DOM {
         );
     }
 
-    static <P extends Props, S> ReactElement el(ReactComponent component, P props, Object... children) {
+    static <P extends BaseProps, S> ReactElement el(ReactComponent component, P props, Object... children) {
         return React.createElement(component, props, children);
     }
 

@@ -2,13 +2,12 @@ package io.clickhandler.web.router;
 
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsType;
-import io.clickhandler.web.react.Props;
 
 /**
  *
  */
 @JsType
-public class RouterProps extends Props {
+public class RouterProps {
     public Object history;
     public Route routes;
 

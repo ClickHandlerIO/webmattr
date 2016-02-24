@@ -8,7 +8,7 @@ import io.clickhandler.web.Func;
  *
  */
 @JsType(isNative = true)
-public interface ReactElement<T, P extends Props<T>> {
+public interface ReactElement<T, P extends BaseProps> {
     @JsProperty
     T getType();
 

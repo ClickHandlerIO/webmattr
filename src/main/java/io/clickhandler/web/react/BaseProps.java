@@ -1,14 +1,28 @@
 package io.clickhandler.web.react;
 
-import elemental.dom.Element;
-
-import javax.inject.Inject;
+import jsinterop.annotations.JsProperty;
+import jsinterop.annotations.JsType;
 
 /**
  *
  */
-public class BaseProps extends Props<Element> {
-    @Inject
-    public BaseProps() {
-    }
+@JsType(isNative = true)
+public interface BaseProps {
+    @JsProperty
+    Object getChildren();
+
+    @JsProperty
+    void setChildren(Object children);
+
+    @JsProperty
+    String getKey();
+
+    @JsProperty
+    void setKey(String key);
+
+    @JsProperty
+    Object getRef();
+
+    @JsProperty
+    void setRef(Object value);
 }

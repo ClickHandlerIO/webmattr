@@ -28,6 +28,7 @@ public class React {
     public static final String PUBLISH_3 = "$publish3$";
     public static final String CLEANUP = "$cleanup$";
     public static final String DISPATCH = "$dispatch$";
+    public static final String SET_STATE = "$setState$";
 
     public static void init() {
         final Resources bundle = Resources.INSTANCE;

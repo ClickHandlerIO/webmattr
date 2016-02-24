@@ -1,18 +1,21 @@
 package io.clickhandler.web.dom;
 
+import io.clickhandler.web.event.*;
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
-import io.clickhandler.web.event.*;
-import io.clickhandler.web.Func;
-import io.clickhandler.web.react.Props;
-import io.clickhandler.web.react.Ref;
 
 /**
  *
  */
 @JsType
-public class DOMProps<T> extends Props<T> {
+public class DOMProps<T> {
+    @JsProperty
+    public Object children;
+    @JsProperty
+    public Object key;
+    @JsProperty
+    public Object ref;
     @JsProperty
     public ClipboardEventHandler onCopy;
     @JsProperty
@@ -139,6 +142,40 @@ public class DOMProps<T> extends Props<T> {
     public UIEventHandler onScroll;
     @JsProperty
     public WheelEventHandler onWheel;
+
+    @JsIgnore
+    public Object children() {
+        return this.children;
+    }
+
+    @JsIgnore
+    public Object key() {
+        return this.key;
+    }
+
+    @JsIgnore
+    public Object ref() {
+        return this.ref;
+    }
+
+    @JsIgnore
+    public DOMProps children(final Object children) {
+        this.children = children;
+        return this;
+    }
+
+    @JsIgnore
+    public DOMProps key(final Object key) {
+        this.key = key;
+        return this;
+    }
+
+    @JsIgnore
+    public DOMProps ref(final Object ref) {
+        this.ref = ref;
+        return this;
+    }
+
 
     @JsIgnore
     public DOMProps<T> onCopy(ClipboardEventHandler value) {
@@ -515,33 +552,6 @@ public class DOMProps<T> extends Props<T> {
     @JsIgnore
     public DOMProps<T> onWheel(WheelEventHandler value) {
         this.onWheel = value;
-        return this;
-    }
-
-    @Override
-    @JsIgnore
-    public DOMProps<T> children(Object children) {
-        super.children(children);
-        return this;
-    }
-
-    @Override
-    @JsIgnore
-    public DOMProps<T> key(Object key) {
-        super.key(key);
-        return this;
-    }
-
-    @Override
-    @JsIgnore
-    public DOMProps<T> ref(Func.Run1<T> ref) {
-        super.ref(ref);
-        return this;
-    }
-
-    @JsIgnore
-    public DOMProps<T> ref(Ref<T> ref) {
-        super.ref(ref);
         return this;
     }
 }

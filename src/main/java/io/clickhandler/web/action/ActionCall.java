@@ -149,12 +149,13 @@ public class ActionCall<IN, OUT> implements HandlerRegistration {
     }
 
     void onError(Throwable e) {
+        Try.silent(() -> always());
+
         try {
             if (errorCallback != null)
                 errorCallback.run(e);
         } finally {
             errorCallback = null;
-            always();
         }
     }
 

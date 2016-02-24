@@ -1,11 +1,13 @@
 package io.clickhandler.web.react;
 
-import com.google.web.bindery.event.shared.HandlerRegistration;
 import elemental.client.Browser;
 import elemental.dom.Document;
 import elemental.html.Console;
 import elemental.html.Window;
-import io.clickhandler.web.*;
+import io.clickhandler.web.Bus;
+import io.clickhandler.web.BusDelegate;
+import io.clickhandler.web.Func;
+import io.clickhandler.web.Reflection;
 import io.clickhandler.web.action.AbstractAction;
 import io.clickhandler.web.action.ActionCall;
 import io.clickhandler.web.dom.DOM;
@@ -15,7 +17,6 @@ import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 
-import javax.inject.Inject;
 import javax.inject.Provider;
 
 /**
@@ -27,7 +28,7 @@ public abstract class Component<P, S> {
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
     @JsProperty
-    private Func.Run2<Object, Object> componentDidUpdate = Func.bind(this::componentDidUpdate0);
+    private Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
     @JsProperty
     private Func.Run componentDidMount = Func.bind(this::componentDidMount0);
     @JsProperty
@@ -37,31 +38,22 @@ public abstract class Component<P, S> {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
     private String displayName = "";
-    @JsProperty
-    private ContextTypes contextTypes = new ContextTypes();
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Props
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    private Provider<P> propsProvider;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Lifecycle
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
-    private Func.Run1<Object> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
+    private Func.Run1<P> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
     @JsProperty
     private Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
-    private P propsType;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // State
     ///////////////////////////////////////////////////////////////////////////////////////////////////
-    private Provider<S> stateProvider;
     @JsProperty
-    private Func.Run2<Object, Object> componentWillUpdate = Func.bind(this::componentWillUpdate0);
+    private Func.Run2<P, S> componentWillUpdate = Func.bind(this::componentWillUpdate0);
     @JsProperty
     private Func.Call<S> getInitialState = Func.bind(this::getInitialState);
     @JsProperty
-    private Func.Call2<Boolean, Object, Object> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
-    private S stateType;
+    private Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Render
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -75,19 +67,17 @@ public abstract class Component<P, S> {
     @JsProperty
     private final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
     private History history;
+    @JsProperty
+    private ContextTypes contextTypes = new ContextTypes();
 
     public Component() {
-        addContextTypes(contextTypes);
         displayName = getDisplayName();
+        addContextTypes(contextTypes);
     }
 
-    protected void wire() {
+    protected String getDisplayName() {
+        return getClass().getSimpleName();
     }
-
-//    @JsFunction
-//    private interface ShouldComponentUpdate {
-//        boolean call();
-//    }
 
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Build Context Types Object.
@@ -96,116 +86,21 @@ public abstract class Component<P, S> {
     protected void addContextTypes(ContextTypes contextTypes) {
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Injected
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-    @Inject
-    void setPropsProvider(Provider<P> provider) {
-        this.propsProvider = provider;
-        propsType = provider.get();
+    public P getDefaultProps(ReactComponent<P, S> $this) {
+        return newProps();
     }
 
-    @Inject
-    void setStateProvider(Provider<S> provider) {
-        this.stateProvider = provider;
-        stateType = provider.get();
+    public S getInitialState(ReactComponent<P, S> $this) {
+        return newState();
     }
 
-    /**
-     * Ensure access to the bus is private.
-     *
-     * @return
-     */
-    private Bus bus() {
-        return bus;
-    }
+    protected native P newProps() /*-{
+        return {};
+    }-*/;
 
-    @Inject
-    void setBus(Bus bus) {
-        this.bus = bus;
-    }
-
-    public History getHistory() {
-        return history;
-    }
-
-    @Inject
-    void setHistory(History history) {
-        this.history = history;
-    }
-
-
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // MyEventBus
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-    public String getDisplayName() {
-        return getClass().getSimpleName();
-    }
-
-    private P getPropsType() {
-        return propsType;
-    }
-
-    private S getStateType() {
-        return stateType;
-    }
-
-    /**
-     * @param $this
-     * @return
-     */
-    public P getProps(ReactComponent $this) {
-        return Reflection.copy(React.getProps($this), getPropsType());
-    }
-
-    /**
-     * @param $this
-     * @return
-     */
-    public S getState(ReactComponent $this) {
-        return Reflection.copy(React.getState($this), getStateType());
-    }
-
-    /**
-     * @param $this
-     * @param state
-     */
-    public void setState(ReactComponent $this, S state) {
-        $this.setState(state);
-    }
-
-    protected P getDefaultProps(ReactComponent<P, S> $this) {
-        P props = props();
-        initProps($this, props);
-        return props;
-    }
-
-    /**
-     * Invoked once when the component is mounted.
-     * Values in the mapping will be set on this.props if that prop is not specified by the parent component (i.e. using an in check).
-     * This method is invoked before onGetInitialState and therefore cannot rely on this.state or use this.setState.
-     */
-    @JsIgnore
-    protected P initProps(ReactComponent<P, S> $this, P props) {
-        return props;
-    }
-
-    @JsIgnore
-    protected S getInitialState(ReactComponent<P, S> $this) {
-        P props = getProps($this);
-        return this.initState($this, props, stateProvider.get());
-    }
-
-    /**
-     * @return
-     */
-    @JsIgnore
-    protected S initState(ReactComponent<P, S> $this, P props, S state) {
-        return state;
-    }
+    protected native S newState() /*-{
+        return {};
+    }-*/;
 
     /**
      * Invoked before rendering when new props or state are being received.
@@ -221,15 +116,11 @@ public abstract class Component<P, S> {
      * @param nextState the state object that the component will receive
      */
     @JsIgnore
-    protected boolean shouldComponentUpdate0(final ReactComponent $this, Object nextProps, Object nextState) {
-        return shouldComponentUpdate(
-            $this,
-            Reflection.copy(nextProps, propsProvider.get()),
-            Reflection.copy(nextState, stateProvider.get())
-        );
+    protected boolean shouldComponentUpdate0(final ReactComponent $this, P nextProps, S nextState) {
+        return shouldComponentUpdate($this, nextProps, nextState);
     }
 
-    protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
+    protected boolean shouldComponentUpdate(final ReactComponent $this, P nextProps, S nextState) {
         return true;
     }
 
@@ -243,8 +134,8 @@ public abstract class Component<P, S> {
      * Keeping render() pure makes server rendering more practical and makes components easier to think about.
      */
     protected ReactElement render0(final ReactComponent<P, S> $this) {
-        P props = getProps($this);
-        S state = getState($this);
+        P props = $this.getProps();
+        S state = $this.getState();
         ChildCounter.get().scope();
         try {
             if (props != null) {
@@ -281,51 +172,11 @@ public abstract class Component<P, S> {
     protected abstract ReactElement render(final ReactComponent<P, S> $this, P props, S state);
 
     @JsIgnore
-    protected void componentWillMount0(final ReactComponent<P, S> $this) {
+    private void componentWillMount0(final ReactComponent<P, S> $this) {
         if ($this != null) {
             Reflection.set($this, React.BUS, new BusDelegate(bus));
-            Reflection.set($this, React.GET_PROPS, (Func.Call<P>) () -> getProps($this));
-            Reflection.set($this, React.GET_STATE, (Func.Call<S>) () -> getState($this));
-            Reflection.set($this, React.GET_PROPERTY, (Func.Call1<Object, String>) name -> Reflection.get($this, name));
             Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
             Reflection.set($this, React.SET_REF, (Func.Run2<Ref, Object>) (ref, value) -> ref.set($this, value));
-            Reflection.set($this, React.REGISTER, (Func.Run1<HandlerRegistration>) handlerRegistration -> $this.getBus().register(handlerRegistration));
-            Reflection.set($this, React.SUBSCRIBE_1, new Subscribe1() {
-                @Override
-                public <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback) {
-                    return $this.getBus().subscribe(eventClass, callback);
-                }
-            });
-            Reflection.set($this, React.SUBSCRIBE_2, new Subscribe2() {
-                @Override
-                public <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback) {
-                    return $this.getBus().subscribe(named, callback);
-                }
-            });
-            Reflection.set($this, React.SUBSCRIBE_3, new Subscribe3() {
-                @Override
-                public <T> HandlerRegistration subscribe(String name, EventCallback<T> callback) {
-                    return $this.getBus().subscribe(name, callback);
-                }
-            });
-            Reflection.set($this, React.PUBLISH_1, new Publish1() {
-                @Override
-                public <T> void publish(T event) {
-                    $this.getBus().publish(event);
-                }
-            });
-            Reflection.set($this, React.PUBLISH_2, new Publish2() {
-                @Override
-                public <T> void publish(Bus.TypeName<T> name, T event) {
-                    $this.getBus().publish(name, event);
-                }
-            });
-            Reflection.set($this, React.PUBLISH_3, new Publish3() {
-                @Override
-                public <T> void publish(String name, T event) {
-                    $this.getBus().publish(name, event);
-                }
-            });
             Reflection.set($this, React.CLEANUP, (Func.Run) () -> {
                 final BusDelegate bus = $this.getBus();
                 if (bus != null) {
@@ -339,13 +190,9 @@ public abstract class Component<P, S> {
                 }
             });
         }
-        componentWillMount($this, getProps($this), getState($this));
+        componentWillMount($this, $this.getProps(), $this.getState());
     }
 
-    /**
-     * Invoked immediately before rendering occurs.``
-     * If you call setState within this method, render() will see the updated state and will be executed only once despite the state change.
-     */
     @JsIgnore
     protected void componentWillMount(final ReactComponent<P, S> $this, P props, S state) {
 
@@ -367,93 +214,51 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
-    private void componentWillReceiveProps0(final ReactComponent<P, S> $this, Object nextProps) {
-        componentWillReceiveProps($this, Reflection.copy(nextProps, propsProvider.get()));
+    private void componentWillReceiveProps0(final ReactComponent<P, S> $this, P nextProps) {
+        componentWillReceiveProps($this, nextProps);
     }
-
-    /**
-     * Invoked when a component is receiving new props. This method is not called for the initial render.
-     * <p/>
-     * Use this as an opportunity to react to a prop transition before render() is called by updating the state using this.setState().
-     * The old props can be accessed via this.props. Calling this.setState() within this function will not trigger an additional render.
-     *
-     * @param nextProps the props object that the component will receive
-     */
 
     @JsIgnore
     protected void componentWillReceiveProps(final ReactComponent<P, S> $this, P nextProps) {
+
     }
 
     @JsIgnore
-    protected void componentWillUpdate0(final ReactComponent<P, S> $this, Object nextProps, Object nextState) {
-        componentWillUpdate(
-            $this,
-            Reflection.copy(nextProps, propsProvider.get()),
-            Reflection.copy(nextState, stateProvider.get())
-        );
-    }
+    protected void componentWillUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
 
-    /**
-     * Invoked immediately before rendering when new props or state are being received. This method is not called for the initial render.
-     * Use this as an opportunity to perform preparation before an update occurs.
-     *
-     * @param nextProps the props object that the component has received
-     * @param nextState the state object that the component has received
-     */
-    @JsIgnore
-    protected void componentWillUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
     }
 
     @JsIgnore
-    protected void componentDidUpdate0(final ReactComponent<P, S> $this, Object nextProps, Object nextState) {
-        componentDidUpdate(
-            $this,
-            Reflection.copy(nextProps, propsProvider.get()),
-            Reflection.copy(nextState, stateProvider.get())
-        );
+    private void componentDidUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
+        componentDidUpdate($this, nextProps, nextState);
     }
 
-    /**
-     * Invoked immediately after updating occurs. This method is not called for the initial render.
-     * Use this as an opportunity to operate on the DOM when the component has been updated.
-     *
-     * @param nextProps the props object that the component has received
-     * @param nextState the state object that the component has received
-     */
-    @JsIgnore
     protected void componentDidUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
     }
 
     @JsIgnore
     protected void componentWillUnmount0(final ReactComponent<P, S> $this) {
-        $this.cleanup();
-        componentWillUnmount($this);
+        try {
+            $this.cleanup();
+        } finally {
+            componentWillUnmount($this);
+        }
     }
 
-    /**
-     * Invoked immediately before a component is unmounted from the DOM.
-     * Perform any necessary cleanup in this method, such as invalidating timers or cleaning up any DOM elements that were created in componentDidMount.
-     */
-    @JsIgnore
     protected void componentWillUnmount(final ReactComponent<P, S> $this) {
     }
 
-    public Object getReactClass() {
+    @JsIgnore
+    public ReactClass getReactClass() {
         if (reactClass == null) {
             reactClass = React.createClass(this);
         }
-        return reactClass;
+        return (ReactClass) reactClass;
     }
 
     protected P props() {
         // Create Props.
-        final P props = propsProvider.get();
-        try {
-            // Init props.
-            initProps(null, props);
-        } catch (Throwable e) {
-            // Ignore.
-        }
+        final P props = newProps();
 
         // Set key manually.
         Object key = Reflection.get(props, "key");
@@ -572,36 +377,6 @@ public abstract class Component<P, S> {
             childCallback.run(childList);
         }
         return React.createElement(getReactClass(), props, childList.toArray());
-    }
-
-    @JsFunction
-    private interface Subscribe1 {
-        <T> HandlerRegistration subscribe(Class<T> eventClass, EventCallback<T> callback);
-    }
-
-    @JsFunction
-    private interface Subscribe2 {
-        <T> HandlerRegistration subscribe(Bus.TypeName<T> named, EventCallback<T> callback);
-    }
-
-    @JsFunction
-    private interface Subscribe3 {
-        <T> HandlerRegistration subscribe(String name, EventCallback<T> callback);
-    }
-
-    @JsFunction
-    private interface Publish1 {
-        <T> void publish(T event);
-    }
-
-    @JsFunction
-    private interface Publish2 {
-        <T> void publish(Bus.TypeName<T> name, T event);
-    }
-
-    @JsFunction
-    private interface Publish3 {
-        <T> void publish(String name, T event);
     }
 
     @JsFunction

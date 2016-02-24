@@ -1,15 +1,14 @@
 package io.clickhandler.web.router;
 
-import elemental.dom.Element;
+import io.clickhandler.web.react.BaseProps;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
-import io.clickhandler.web.react.Props;
 
 /**
  *
  */
-@JsType
-public class RouteProps<T> extends Props<Element> {
+@JsType(isNative = true)
+public interface RouteProps<T> extends BaseProps {
     /**
      * The Router's history history.
      * <p/>
@@ -18,13 +17,13 @@ public class RouteProps<T> extends Props<Element> {
      * @return
      */
     @JsProperty
-    public native History getHistory();
+    History getHistory();
 
     /**
      * @return
      */
     @JsProperty
-    public native Location getLocation();
+    Location getLocation();
 
     /**
      * The dynamic segments of the URL.
@@ -32,7 +31,7 @@ public class RouteProps<T> extends Props<Element> {
      * @return
      */
     @JsProperty
-    public native Object getParams();
+    Object getParams();
 
     /**
      * The route that rendered this component.
@@ -40,5 +39,5 @@ public class RouteProps<T> extends Props<Element> {
      * @return
      */
     @JsProperty
-    public native Route getRoute();
+    Route getRoute();
 }

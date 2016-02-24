@@ -296,6 +296,39 @@ public class HTMLProps<T> extends DOMProps<T> {
     @JsProperty
     public boolean unselectable;
 
+    @Override
+    @JsIgnore
+    public HTMLProps<T> ref(Object ref) {
+        super.ref(ref);
+        return this;
+    }
+
+    @Override
+    @JsIgnore
+    public HTMLProps<T> children(Object children) {
+        super.children(children);
+        return this;
+    }
+
+    @Override
+    @JsIgnore
+    public HTMLProps<T> key(Object key) {
+        super.key(key);
+        return this;
+    }
+
+    @JsIgnore
+    public HTMLProps<T> ref(Func.Run1<T> ref) {
+        super.ref(ref);
+        return this;
+    }
+
+    @JsIgnore
+    public HTMLProps<T> ref(Ref<T> ref) {
+        super.ref(ref);
+        return this;
+    }
+
     @JsIgnore
     public HTMLProps<T> set(String name, String value) {
         if (value != null) {
@@ -1597,33 +1630,6 @@ public class HTMLProps<T> extends DOMProps<T> {
     @JsIgnore
     public HTMLProps<T> onWheel(WheelEventHandler value) {
         super.onWheel(value);
-        return this;
-    }
-
-    @Override
-    @JsIgnore
-    public HTMLProps<T> children(Object children) {
-        super.children(children);
-        return this;
-    }
-
-    @Override
-    @JsIgnore
-    public HTMLProps<T> key(Object key) {
-        super.key(key);
-        return this;
-    }
-
-    @Override
-    @JsIgnore
-    public HTMLProps<T> ref(Func.Run1<T> ref) {
-        super.ref(ref);
-        return this;
-    }
-
-    @JsIgnore
-    public HTMLProps<T> ref(Ref<T> ref) {
-        super.ref(ref);
         return this;
     }
 }

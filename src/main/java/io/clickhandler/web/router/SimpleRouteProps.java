@@ -1,7 +1,10 @@
 package io.clickhandler.web.router;
 
+import jsinterop.annotations.JsType;
+
 /**
  *
  */
-public class SimpleRouteProps extends RouteProps<Object> {
+@JsType(isNative = true)
+public interface SimpleRouteProps extends RouteProps {
 }

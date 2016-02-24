@@ -43,7 +43,7 @@ public abstract class RoutesBuilder {
         });
     }
 
-    protected <R extends RouteProxy<A>, A, P extends RouteProps<A>, S> void add(RouteComponent<R, A, P, S> component) {
+    protected <R extends RouteProxy<A>, A, P extends RouteProps, S> void add(RouteComponent<R, A, P, S> component) {
         // Instantiate RouteProxy.
         final RouteProxy<A> proxy = component.getRouteProxyProvider().get();
 
@@ -53,6 +53,8 @@ public abstract class RoutesBuilder {
                 new Route()
                     .path(proxy.path())
                     .onEnter((nextState, replaceState) -> {
+                        proxy.toArgs(nextState.getLocation().getQuery());
+
                         if (proxy.onEnter(nextState, replaceState)) {
                             routeGatekeeperProvider.get().onEnter(proxy, nextState, replaceState);
                         }
