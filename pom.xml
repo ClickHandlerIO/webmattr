@@ -190,6 +190,11 @@
                 <filtering>true</filtering>
             </resource>
 
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+            </resource>
+
             <!-- Add Dagger generated sources to classpath for Intellij (this does add to mvn build, ) -->
             <!-- so build-helper-maven-plugin is used to provide generated sources to gwt compiler     -->
             <resource>
@@ -265,22 +270,25 @@
                         </configuration>
                     </plugin>
 
-                    <!-- Add Dagger generated sources to the source path. GWT compile needs this. -->
+                    <!-- Include generated sources -->
                     <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>build-helper-maven-plugin</artifactId>
-                        <version>${build-helper-maven-plugin.version}</version>
+                        <artifactId>maven-resources-plugin</artifactId>
+                        <version>${maven-resources-plugin.version}</version>
                         <executions>
                             <execution>
-                                <id>add-source</id>
-                                <phase>generate-sources</phase>
+                                <id>copy-resources</id>
+                                <phase>process-classes</phase>
                                 <goals>
-                                    <goal>add-source</goal>
+                                    <goal>copy-resources</goal>
                                 </goals>
                                 <configuration>
-                                    <sources>
-                                        <source>target/generated-sources/annotations</source>
-                                    </sources>
+                                    <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                                    <resources>
+                                        <resource>
+                                            <directory>${basedir}/target/generated-sources/annotations</directory>
+                                            <filtering>false</filtering>
+                                        </resource>
+                                    </resources>
                                 </configuration>
                             </execution>
                         </executions>

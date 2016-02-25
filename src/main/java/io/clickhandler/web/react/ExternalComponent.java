@@ -1,6 +1,7 @@
 package io.clickhandler.web.react;
 
 import io.clickhandler.web.Func;
+import io.clickhandler.web.Jso;
 import io.clickhandler.web.Reflection;
 import io.clickhandler.web.dom.DOM;
 
@@ -49,6 +50,7 @@ public abstract class ExternalComponent<P> {
 
     public ReactElement $(Func.Run1<P> propsCallback) {
         P props = defaultProps();
+        if (props == null) props = Jso.create();
         if (propsCallback != null) {
             propsCallback.run(props);
         }
@@ -57,11 +59,12 @@ public abstract class ExternalComponent<P> {
 
     public ReactElement $(Func.Run1<P> propsCallback, Func.Run1<DOM.ChildList> childCallback) {
         P props = defaultProps();
+        if (props == null) props = Jso.create();
         if (propsCallback != null) {
             propsCallback.run(props);
         }
 
-        DOM.ChildList childList = new DOM.ChildList();
+        final DOM.ChildList childList = new DOM.ChildList();
         if (childCallback != null) {
             childCallback.run(childList);
         }
@@ -71,6 +74,7 @@ public abstract class ExternalComponent<P> {
 
     public ReactElement $(Func.Run1<P> propsCallback, Object... children) {
         P props = defaultProps();
+        if (props == null) props = Jso.create();
         if (propsCallback != null) {
             propsCallback.run(props);
         }
@@ -79,7 +83,8 @@ public abstract class ExternalComponent<P> {
 
     public ReactElement $$(Func.Run1<DOM.ChildList> childCallback) {
         P props = defaultProps();
-        DOM.ChildList childList = new DOM.ChildList();
+        if (props == null) props = Jso.create();
+        final DOM.ChildList childList = new DOM.ChildList();
         if (childCallback != null) {
             childCallback.run(childList);
         }

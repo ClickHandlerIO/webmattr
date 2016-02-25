@@ -69,8 +69,7 @@ public interface DOM {
         callback.run(props);
         return React.createElement(
             tagName,
-            props,
-            null
+            props
         );
     }
 

@@ -5,6 +5,7 @@ import elemental.dom.Document;
 import elemental.html.Console;
 import elemental.html.Window;
 import io.clickhandler.web.*;
+import io.clickhandler.web.dom.CSSProps;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.router.History;
 import jsinterop.annotations.JsIgnore;
@@ -81,6 +82,10 @@ public abstract class Component<P, S> {
 
     public static <T> T create(Class<T> cls, Func.Run1<T> callback) {
         return Jso.create(cls, callback);
+    }
+
+    protected CSSProps css() {
+        return new CSSProps();
     }
 
     protected String getDisplayName() {
