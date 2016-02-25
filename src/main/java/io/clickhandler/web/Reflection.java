@@ -4,6 +4,10 @@ package io.clickhandler.web;
  *
  */
 public class Reflection {
+    public static native <T> T create() /*-{
+        return {};
+    }-*/;
+
     public static native void iterate(Object obj, Func.Run2<String, Object> callback) /*-{
         if (!callback || !obj) {
             return;

@@ -1,50 +1,48 @@
 package example.client;
 
 import com.google.gwt.core.client.EntryPoint;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.ScriptInjector;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import elemental.client.Browser;
+import io.clickhandler.web.Bus;
+import io.clickhandler.web.Func;
+import io.clickhandler.web.JSON;
+import io.clickhandler.web.Jso;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.dom.ReactDOM;
-import io.clickhandler.web.react.*;
+import io.clickhandler.web.react.ReactComponent;
+import io.clickhandler.web.react.ReactElement;
 import io.clickhandler.web.resources.Resources;
 import io.clickhandler.web.router.History;
 import io.clickhandler.web.router.ReactRouter;
+import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Date;
 
 /**
  *
  */
 public class Main implements EntryPoint {
-    public static native <T> T create() /*-{
-        return {};
-    }-*/;
-
-    public static native <T> T create(JavaScriptObject obj) /*-{
-        return obj;
-    }-*/;
-
-    public static native Props createProps() /*-{
-        return {};
-    }-*/;
-
     @Override
     public void onModuleLoad() {
+        HiComponent.Props props = Jso.create(HiComponent.Props.class).name("Hello");
+        Browser.getWindow().getConsole().log(JSON.stringify(props));
+
+        props = JSON.parse(JSON.stringify(props));
+        Browser.getWindow().getConsole().log(props);
+
         ScriptInjector.fromString(Resources.INSTANCE.js_react().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
         ScriptInjector.fromString(Resources.INSTANCE.js_react_dom().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
         ScriptInjector.fromString(Resources.INSTANCE.js_react_router().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
 
         ReactDOM.render(MyComponent.instance.hiComponent().$(
-            $ -> {
-                $.setName("Hello");
-            }
+            $ -> $.name("Fluent Setter")
         ), Browser.getDocument().getElementById("app"));
     }
 
@@ -60,16 +58,6 @@ public class Main implements EntryPoint {
     public static class M {
         public static M create() {
             return new M();
-        }
-
-        @Provides
-        HiComponent.Props props() {
-            return Main.create();
-        }
-
-        @Provides
-        HiComponent.State state() {
-            return Main.create();
         }
 
         @Provides
@@ -118,11 +106,15 @@ public class Main implements EntryPoint {
 
         @Override
         protected ReactElement render(ReactComponent<Props, State> $this, Props props, State state) {
-            console.log(props);
+//            console.log(props);
             console.log(state);
+            console.log($this);
+
+//            console.log($this.getBus());
+
             return DOM.div("Hi", DOM.button($ -> {
                 $.onClick(event -> {
-                    $this.forceUpdate();
+                    $this.setState(s -> s.setValue(new Date().getTime() + ""));
                 });
             }, "Click Me"));
         }
@@ -140,12 +132,26 @@ public class Main implements EntryPoint {
 
             @JsProperty
             void setName(String name);
+
+            @JsOverlay
+            default Props name(String name) {
+                Browser.getWindow().getConsole().log("HI @JsOverlay");
+                setName(name);
+                return this;
+            }
+
+            class Event {
+                public final static Bus.TypeName<Props> NAME = new Bus.TypeName<>();
+            }
         }
 
         @JsType(isNative = true)
         public interface State {
+            @JsProperty
+            String getValue();
 
+            @JsProperty
+            void setValue(String value);
         }
     }
-
 }

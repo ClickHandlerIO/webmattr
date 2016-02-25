@@ -44,7 +44,6 @@ public class WsDispatcher {
     }
 
     /**
-     *
      * @param subscription
      * @param <T>
      * @return
@@ -60,13 +59,8 @@ public class WsDispatcher {
         }
 
         AddressSubscription addressSubscription = subMap.get(addr);
-
         if (addressSubscription == null) {
-            addressSubscription = new AddressSubscription<>(
-                addr,
-                subscription.getPublisher(),
-                subscription.getTypeName(),
-                subscription.getScopedTypeName());
+            addressSubscription = new AddressSubscription<>(addr);
             subMap.put(addr, addressSubscription);
         }
 
@@ -385,22 +379,12 @@ public class WsDispatcher {
      */
     private class AddressSubscription<T> implements HandlerRegistration {
         private final String name;
-        private final PushPublisher<T> publisher;
-        private final Bus.TypeName<T> typeName;
-        private final Bus.TypeName<T> scopedTypeName;
         private SubState state = SubState.NOT_REGISTERED;
-
         private ArrayList<PushSubscription> subs = new ArrayList<>();
 
-        public AddressSubscription(String name,
-                                   PushPublisher<T> publisher,
-                                   Bus.TypeName<T> typeName,
-                                   Bus.TypeName<T> scopedTypeName) {
+        public AddressSubscription(String name) {
             this.name = name;
-            this.publisher = publisher;
-            this.typeName = typeName;
-            this.scopedTypeName = scopedTypeName;
-            subscribe();
+            subscribeToServer();
         }
 
         /**
@@ -439,14 +423,14 @@ public class WsDispatcher {
         public void setState(SubState state) {
             this.state = state;
             if (state == SubState.NOT_REGISTERED) {
-                subscribe();
+                subscribeToServer();
             }
         }
 
         /**
          *
          */
-        public void subscribe() {
+        public void subscribeToServer() {
             if (state == SubState.REGISTERED || state == SubState.REGISTERING) {
                 return;
             }
@@ -472,7 +456,22 @@ public class WsDispatcher {
         }
 
         public void receive(String json) {
-            publisher.publish(bus, typeName, scopedTypeName, json);
+            final T event = JSON.parse(json);
+
+            final HashSet<Bus.TypeName<T>> typeNameSet = new HashSet<>();
+            for (PushSubscription subscription : subs) {
+                final Bus.TypeName<T> typeName = subscription.getTypeName();
+                final Bus.TypeName<T> scopedTypeName = subscription.getScopedTypeName();
+
+                if (typeName != null && !typeNameSet.contains(typeName)) {
+                    typeNameSet.add(typeName);
+                    bus.publish(typeName, event);
+                }
+                if (scopedTypeName != null && !typeNameSet.contains(scopedTypeName)) {
+                    typeNameSet.add(scopedTypeName);
+                    bus.publish(scopedTypeName, event);
+                }
+            }
         }
 
         /**

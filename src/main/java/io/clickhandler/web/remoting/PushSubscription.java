@@ -12,7 +12,6 @@ public class PushSubscription<T> implements HandlerRegistration {
     private final String address;
     private final Bus.TypeName<T> typeName;
     private final Bus.TypeName<T> scopedTypeName;
-    private final PushPublisher<T> publisher;
     private final EventCallback<T> callback;
     private final String id;
     HandlerRegistration dispatcherReg;
@@ -20,20 +19,17 @@ public class PushSubscription<T> implements HandlerRegistration {
 
     public PushSubscription(String name,
                             Bus.TypeName<T> typeName,
-                            PushPublisher<T> publisher,
                             EventCallback<T> callback) {
-        this(name, typeName, publisher, callback, null);
+        this(name, typeName, callback, null);
     }
 
     public PushSubscription(String name,
                             Bus.TypeName<T> typeName,
-                            PushPublisher<T> publisher,
                             EventCallback<T> callback,
                             String id) {
         this.name = name;
         this.typeName = typeName;
         this.scopedTypeName = id != null ? Bus.scoped(typeName, id) : null;
-        this.publisher = publisher;
         this.callback = callback;
         this.id = id;
         this.address = String.valueOf(name) + (id == null ? "" : "|" + id);
@@ -53,10 +49,6 @@ public class PushSubscription<T> implements HandlerRegistration {
 
     public Bus.TypeName<T> getScopedTypeName() {
         return scopedTypeName;
-    }
-
-    public PushPublisher<T> getPublisher() {
-        return publisher;
     }
 
     /**

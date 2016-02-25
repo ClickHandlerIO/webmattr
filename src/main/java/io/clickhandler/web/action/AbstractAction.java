@@ -2,6 +2,7 @@ package io.clickhandler.web.action;
 
 import io.clickhandler.web.Bus;
 import io.clickhandler.web.JSON;
+import io.clickhandler.web.Jso;
 import io.clickhandler.web.Try;
 
 import javax.inject.Inject;
@@ -16,8 +17,6 @@ import java.util.Date;
  */
 public abstract class AbstractAction<IN, OUT> {
     private Bus bus;
-    private Provider<IN> inProvider;
-    private Provider<OUT> outProvider;
     private long started;
     private int timeoutMillis = 10000;
     private ActionCall<IN, OUT> call;
@@ -29,24 +28,6 @@ public abstract class AbstractAction<IN, OUT> {
         return timeoutMillis;
     }
 
-    public Provider<IN> getInProvider() {
-        return inProvider;
-    }
-
-    @Inject
-    void setInProvider(Provider<IN> inProvider) {
-        this.inProvider = inProvider;
-    }
-
-    public Provider<OUT> getOutProvider() {
-        return outProvider;
-    }
-
-    @Inject
-    void setOutProvider(Provider<OUT> outProvider) {
-        this.outProvider = outProvider;
-    }
-
     @Inject
     void setBus(Bus bus) {
         this.bus = bus;
@@ -55,7 +36,7 @@ public abstract class AbstractAction<IN, OUT> {
     protected ActionCall<IN, OUT> build() {
         return call = new ActionCall<IN, OUT>(in -> {
             beforeDispatch(in);
-        }, inProvider);
+        }, this::createIn);
     }
 
     /**
@@ -66,6 +47,14 @@ public abstract class AbstractAction<IN, OUT> {
         this.timeoutMillis = call.timeoutMillis();
         bus.publish(request);
         dispatch(request);
+    }
+
+    protected IN createIn() {
+        return Jso.create();
+    }
+
+    protected OUT createOut() {
+        return Jso.create();
     }
 
     /**
@@ -98,7 +87,7 @@ public abstract class AbstractAction<IN, OUT> {
      * @param callback
      */
     protected void respond(ResponseCallback<OUT> callback) {
-        final OUT out = outProvider.get();
+        final OUT out = createOut();
         try {
             if (callback != null) {
                 callback.call(out);
@@ -114,7 +103,7 @@ public abstract class AbstractAction<IN, OUT> {
      * @return
      */
     protected IN parseIn(String json) {
-        final IN in = inProvider.get();
+        final IN in = JSON.parse(json);
         if (in == null) {
             return null;
         }
@@ -126,7 +115,7 @@ public abstract class AbstractAction<IN, OUT> {
      * @return
      */
     protected OUT parseOut(String json) {
-        final OUT out = outProvider.get();
+        final OUT out = JSON.parse(json);
         if (out == null) {
             return null;
         }

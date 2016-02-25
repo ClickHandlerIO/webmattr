@@ -4,20 +4,14 @@ import elemental.client.Browser;
 import elemental.dom.Document;
 import elemental.html.Console;
 import elemental.html.Window;
-import io.clickhandler.web.Bus;
-import io.clickhandler.web.BusDelegate;
-import io.clickhandler.web.Func;
-import io.clickhandler.web.Reflection;
-import io.clickhandler.web.action.AbstractAction;
-import io.clickhandler.web.action.ActionCall;
+import io.clickhandler.web.*;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.router.History;
-import jsinterop.annotations.JsFunction;
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 
-import javax.inject.Provider;
+import javax.inject.Inject;
 
 /**
  * @param <P>
@@ -27,6 +21,12 @@ public abstract class Component<P, S> {
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
+    @Inject
+    Bus bus;
+    @JsProperty
+    private final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
+    @Inject
+    History history;
     @JsProperty
     private Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
     @JsProperty
@@ -63,16 +63,24 @@ public abstract class Component<P, S> {
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     private Object reactClass;
-    private Bus bus;
-    @JsProperty
-    private final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
-    private History history;
     @JsProperty
     private ContextTypes contextTypes = new ContextTypes();
 
     public Component() {
         displayName = getDisplayName();
         addContextTypes(contextTypes);
+    }
+
+    public static <T> T create() {
+        return Jso.create();
+    }
+
+    public static <T> T create(Class<T> cls) {
+        return Jso.create();
+    }
+
+    public static <T> T create(Class<T> cls, Func.Run1<T> callback) {
+        return Jso.create(cls, callback);
     }
 
     protected String getDisplayName() {
@@ -87,18 +95,18 @@ public abstract class Component<P, S> {
     }
 
     public P getDefaultProps(ReactComponent<P, S> $this) {
-        return newProps();
+        return createProps();
     }
 
     public S getInitialState(ReactComponent<P, S> $this) {
-        return newState();
+        return createState();
     }
 
-    protected native P newProps() /*-{
+    protected native P createProps() /*-{
         return {};
     }-*/;
 
-    protected native S newState() /*-{
+    protected native S createState() /*-{
         return {};
     }-*/;
 
@@ -173,30 +181,7 @@ public abstract class Component<P, S> {
 
     @JsIgnore
     private void componentWillMount0(final ReactComponent<P, S> $this) {
-        if ($this != null) {
-            Reflection.set($this, React.BUS, new BusDelegate(bus));
-            Reflection.set($this, React.GET_REF, (Func.Call1<Object, Ref>) ref -> ref.get($this));
-            Reflection.set($this, React.SET_REF, (Func.Run2<Ref, Object>) (ref, value) -> ref.set($this, value));
-            Reflection.set($this, React.SET_STATE, (Func.Run1<Func.Run1<S>>) stateCallback -> {
-                final S state = newState();
-                if (stateCallback != null) {
-                    stateCallback.run(state);
-                }
-                $this.setState(state);
-            });
-            Reflection.set($this, React.CLEANUP, (Func.Run) () -> {
-                final BusDelegate bus = $this.getBus();
-                if (bus != null) {
-                    bus.clear();
-                }
-            });
-            Reflection.set($this, React.DISPATCH, new Dispatch() {
-                @Override
-                public <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action) {
-                    return ActionCall.create($this.getBus(), action);
-                }
-            });
-        }
+        Reflection.set($this, React.BUS, new BusDelegate(bus));
         componentWillMount($this, $this.getProps(), $this.getState());
     }
 
@@ -265,7 +250,7 @@ public abstract class Component<P, S> {
 
     protected P props() {
         // Create Props.
-        final P props = newProps();
+        final P props = createProps();
 
         // Set key manually.
         Object key = Reflection.get(props, "key");
@@ -384,11 +369,6 @@ public abstract class Component<P, S> {
             childCallback.run(childList);
         }
         return React.createElement(getReactClass(), props, childList.toArray());
-    }
-
-    @JsFunction
-    private interface Dispatch {
-        <H extends AbstractAction<IN, OUT>, IN, OUT> ActionCall<IN, OUT> dispatch(Provider<H> action);
     }
 
     @JsType
