@@ -250,6 +250,7 @@
                 <plugins>
 
                     <!-- Filter fonts and images (fonts do not work if they do not get filtered). -->
+                    <!-- Include generated sources -->
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-resources-plugin</artifactId>
@@ -268,12 +269,6 @@
                                 <nonFilteredFileExtension>ico</nonFilteredFileExtension>
                             </nonFilteredFileExtensions>
                         </configuration>
-                    </plugin>
-
-                    <!-- Include generated sources -->
-                    <plugin>
-                        <artifactId>maven-resources-plugin</artifactId>
-                        <version>${maven-resources-plugin.version}</version>
                         <executions>
                             <execution>
                                 <id>copy-resources</id>
@@ -293,30 +288,6 @@
                             </execution>
                         </executions>
                     </plugin>
-
-                    <!-- GWT Compile -->
-                    <!--<plugin>-->
-                        <!--<groupId>org.codehaus.mojo</groupId>-->
-                        <!--<artifactId>gwt-maven-plugin</artifactId>-->
-                        <!--<version>${gwt-maven-plugin.version}</version>-->
-                        <!--<executions>-->
-                            <!--<execution>-->
-                                <!--<id>gwt-compile</id>-->
-                                <!--<phase>compile</phase>-->
-                                <!--<configuration>-->
-                                    <!--<extraJvmArgs>-Xmx1024M -Xss1024k</extraJvmArgs>-->
-                                    <!--<localWorkers>3</localWorkers>-->
-                                    <!--<persistentunitcache>false</persistentunitcache>-->
-                                    <!--<style>PRETTY</style>-->
-                                    <!--<compileReport>true</compileReport>-->
-                                    <!--<disableCastChecking>true</disableCastChecking>-->
-                                <!--</configuration>-->
-                                <!--<goals>-->
-                                    <!--<goal>compile</goal>-->
-                                <!--</goals>-->
-                            <!--</execution>-->
-                        <!--</executions>-->
-                    <!--</plugin>-->
 
                     <!-- Skip running selenium tests before deploy -->
                     <plugin>
