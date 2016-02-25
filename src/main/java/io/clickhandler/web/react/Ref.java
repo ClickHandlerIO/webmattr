@@ -14,6 +14,10 @@ public class Ref<T> {
     @JsProperty
     final String name;
 
+    public String getName() {
+        return name;
+    }
+
     private Ref(String name) {
         this.name = "$$" + name;
     }
@@ -36,10 +40,6 @@ public class Ref<T> {
     }
 
     public T get(ReactComponent $this) {
-        final T value = Reflection.get($this, name);
-        if (value != null) {
-            return value;
-        }
         return Reflection.get(Reflection.get($this, "refs"), name);
     }
 

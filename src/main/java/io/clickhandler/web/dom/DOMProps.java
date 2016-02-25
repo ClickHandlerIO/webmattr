@@ -1,6 +1,8 @@
 package io.clickhandler.web.dom;
 
+import io.clickhandler.web.Func;
 import io.clickhandler.web.event.*;
+import io.clickhandler.web.react.Ref;
 import jsinterop.annotations.JsIgnore;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
@@ -154,28 +156,35 @@ public class DOMProps<T> {
     }
 
     @JsIgnore
-    public Object ref() {
-        return this.ref;
-    }
-
-    @JsIgnore
-    public DOMProps children(final Object children) {
+    public DOMProps<T> children(final Object children) {
         this.children = children;
         return this;
     }
 
     @JsIgnore
-    public DOMProps key(final Object key) {
+    public DOMProps<T> key(final Object key) {
         this.key = key;
         return this;
     }
 
     @JsIgnore
-    public DOMProps ref(final Object ref) {
+    public DOMProps<T> ref(String ref) {
         this.ref = ref;
         return this;
     }
 
+    @JsIgnore
+    public DOMProps<T> ref(Func.Run1<T> ref) {
+        this.ref = ref;
+        return this;
+    }
+
+    @JsIgnore
+    public DOMProps<T> ref(final Ref<T> ref) {
+        if (ref == null) return this;
+        this.ref = ref.getName();
+        return this;
+    }
 
     @JsIgnore
     public DOMProps<T> onCopy(ClipboardEventHandler value) {

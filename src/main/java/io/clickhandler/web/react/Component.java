@@ -19,66 +19,58 @@ import javax.inject.Inject;
  * @param <P>
  * @param <S>
  */
+@JsType
 public abstract class Component<P, S> {
-//    @JsProperty
-//    public final Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
-//    @JsProperty
-//    public final Func.Run componentDidMount = Func.bind(this::componentDidMount0);
-//    @JsProperty
-//    public final Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
-//    ///////////////////////////////////////////////////////////////////////////////////////////////////
-//    // Lifecycle
-//    ///////////////////////////////////////////////////////////////////////////////////////////////////
-//    @JsProperty
-//    public final Func.Run1<P> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
-//    @JsProperty
-//    public final Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
-//    ///////////////////////////////////////////////////////////////////////////////////////////////////
-//    // State
-//    ///////////////////////////////////////////////////////////////////////////////////////////////////
-//    @JsProperty
-//    public final Func.Run2<P, S> componentWillUpdate = Func.bind(this::componentWillUpdate0);
-//    @JsProperty
-//    public final Func.Call<S> getInitialState = Func.bind(this::getInitialState);
-//    @JsProperty
-//    public final Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
-//@JsProperty
-//public final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Render
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-//    @JsProperty(name = "render")
-//    public final Func.Call<ReactElement> render = Func.bind(this::render0);
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
-    @Inject
-    Bus bus;
-    @Inject
-    History history;
+    @JsProperty(name = "componentDidUpdate")
+    public Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
+    @JsProperty
+    public Func.Run componentDidMount = Func.bind(this::componentDidMount0);
+    @JsProperty
+    public Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
+    @JsProperty
+    public Func.Run1<P> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
+    @JsProperty
+    public Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
+    @JsProperty
+    public Func.Run2<P, S> componentWillUpdate = Func.bind(this::componentWillUpdate0);
+    @JsProperty
+    public Func.Call<S> getInitialState = Func.bind(this::getInitialState);
+    @JsProperty
+    public Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
+    @JsProperty(name = "render")
+    public Func.Call<ReactElement> render = Func.bind(this::render0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Defaults
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
     public String displayName = "";
+    @JsProperty
+    public ContextTypes contextTypes = new ContextTypes();
+    @Inject
+    Bus bus;
+    @JsProperty
+    public Func.Run componentWillMount = Func.bind(this::componentWillMount0);
+    @Inject
+    History history;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     private Object reactClass;
-    @JsProperty
-    private ContextTypes contextTypes = new ContextTypes();
 
     public Component() {
-        Reflection.set(this, "render", Func.bind(this::render0));
-        Reflection.set(this, "componentDidUpdate", Func.bind(this::componentDidUpdate0));
-        Reflection.set(this, "componentDidMount", Func.bind(this::componentDidMount0));
-        Reflection.set(this, "componentWillUnmount", Func.bind(this::componentWillUnmount0));
-        Reflection.set(this, "componentWillReceiveProps", Func.bind(this::componentWillReceiveProps0));
-        Reflection.set(this, "getDefaultProps", Func.bind(this::getDefaultProps));
-        Reflection.set(this, "componentWillUpdate", Func.bind(this::getDefaultProps));
-        Reflection.set(this, "getInitialState", Func.bind(this::getInitialState));
-        Reflection.set(this, "shouldComponentUpdate", Func.bind(this::shouldComponentUpdate0));
-        Reflection.set(this, "componentWillMount", Func.bind(this::componentWillMount0));
+//        Reflection.set(this, "render", Func.bind(this::render0));
+//        Reflection.set(this, "componentDidUpdate", Func.bind(this::componentDidUpdate0));
+//        Reflection.set(this, "componentDidMount", Func.bind(this::componentDidMount0));
+//        Reflection.set(this, "componentWillUnmount", Func.bind(this::componentWillUnmount0));
+//        Reflection.set(this, "componentWillReceiveProps", Func.bind(this::componentWillReceiveProps0));
+//        Reflection.set(this, "getDefaultProps", Func.bind(this::getDefaultProps));
+//        Reflection.set(this, "componentWillUpdate", Func.bind(this::getDefaultProps));
+//        Reflection.set(this, "getInitialState", Func.bind(this::getInitialState));
+//        Reflection.set(this, "shouldComponentUpdate", Func.bind(this::shouldComponentUpdate0));
+//        Reflection.set(this, "componentWillMount", Func.bind(this::componentWillMount0));
 
         displayName = getDisplayName();
         addContextTypes(contextTypes);
@@ -100,6 +92,7 @@ public abstract class Component<P, S> {
         return new CSSProps();
     }
 
+    @JsIgnore
     protected String getDisplayName() {
         return getClass().getSimpleName();
     }
@@ -122,10 +115,12 @@ public abstract class Component<P, S> {
         return createState();
     }
 
+    @JsIgnore
     protected native P createProps() /*-{
         return {};
     }-*/;
 
+    @JsIgnore
     protected native S createState() /*-{
         return {};
     }-*/;

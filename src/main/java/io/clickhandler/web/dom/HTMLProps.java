@@ -298,13 +298,6 @@ public class HTMLProps<T> extends DOMProps<T> {
 
     @Override
     @JsIgnore
-    public HTMLProps<T> ref(Object ref) {
-        super.ref(ref);
-        return this;
-    }
-
-    @Override
-    @JsIgnore
     public HTMLProps<T> children(Object children) {
         super.children(children);
         return this;
@@ -317,15 +310,25 @@ public class HTMLProps<T> extends DOMProps<T> {
         return this;
     }
 
+    @Override
+    @JsIgnore
+    public HTMLProps<T> ref(String ref) {
+        super.ref(ref);
+        return this;
+    }
+
+    @Override
     @JsIgnore
     public HTMLProps<T> ref(Func.Run1<T> ref) {
         super.ref(ref);
         return this;
     }
 
+    @Override
     @JsIgnore
-    public HTMLProps<T> ref(Ref<T> ref) {
-        super.ref(ref);
+    public HTMLProps<T> ref(final Ref<T> ref) {
+        if (ref == null) return this;
+        this.ref = ref.getName();
         return this;
     }
 
