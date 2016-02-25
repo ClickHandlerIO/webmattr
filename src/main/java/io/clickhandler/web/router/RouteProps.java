@@ -40,4 +40,11 @@ public interface RouteProps<T> extends BaseProps {
      */
     @JsProperty
     Route getRoute();
+
+    /**
+     *
+     * @return
+     */
+    @JsProperty
+    T getRouteParams();
 }

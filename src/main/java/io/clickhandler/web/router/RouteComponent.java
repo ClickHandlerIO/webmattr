@@ -1,9 +1,8 @@
 package io.clickhandler.web.router;
 
-import io.clickhandler.web.Reflection;
 import io.clickhandler.web.react.Component;
-import io.clickhandler.web.react.ReactComponent;
 import io.clickhandler.web.react.React;
+import io.clickhandler.web.react.ReactComponent;
 
 import javax.inject.Inject;
 import javax.inject.Provider;
@@ -12,17 +11,10 @@ import javax.inject.Provider;
  *
  */
 public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends RouteProps, S> extends Component<P, S> implements HasRouter {
-    @Inject
-    Provider<A> argsProvider;
-
     private Provider<R> routeProxyProvider;
     private R routeProxy;
 
     public RouteComponent() {
-    }
-
-    public Provider<A> getArgsProvider() {
-        return argsProvider;
     }
 
     public Provider<R> getRouteProxyProvider() {
@@ -35,33 +27,9 @@ public abstract class RouteComponent<R extends RouteProxy<A>, A, P extends Route
         this.routeProxy = routeProxyProvider.get();
     }
 
-    public A getRouteArgs(P props) {
-        return routeProxy.toArgs(props.getLocation());
-    }
-
     @Override
     protected void addContextTypes(ContextTypes contextTypes) {
         contextTypes.set("router", React.PropTypes.object(true));
-    }
-
-    @Override
-    protected void componentWillMount(ReactComponent<P, S> $this, P props, S state) {
-        updateProps(props);
-        super.componentWillMount($this, props, state);
-    }
-
-    @Override
-    protected void componentWillReceiveProps(ReactComponent<P, S> $this, P nextProps) {
-        updateProps(nextProps);
-        super.componentWillReceiveProps($this, nextProps);
-    }
-
-    private void updateProps(P props) {
-        // Create new args.
-        final A args = routeProxy.toArgs(props.getLocation());
-
-        // Replace routeParams with args.
-        Reflection.set(props, "routeParams", args);
     }
 
     @Override
