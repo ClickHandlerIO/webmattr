@@ -1,6 +1,5 @@
-package io.clickhandler.web.resources;
+package example.client.resources;
 
-import com.google.gwt.core.client.GWT;
 import com.google.gwt.resources.client.ClientBundle;
 import com.google.gwt.resources.client.TextResource;
 
@@ -8,8 +7,6 @@ import com.google.gwt.resources.client.TextResource;
  *
  */
 public interface Resources extends ClientBundle {
-    Resources INSTANCE = GWT.create(Resources.class);
-
     @Source("react-0.14.7.js")
     TextResource js_react();
 

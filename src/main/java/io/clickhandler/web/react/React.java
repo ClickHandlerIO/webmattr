@@ -1,8 +1,6 @@
 package io.clickhandler.web.react;
 
-import com.google.gwt.core.client.ScriptInjector;
 import jsinterop.annotations.JsMethod;
-import io.clickhandler.web.resources.Resources;
 
 /**
  *
@@ -30,15 +28,7 @@ public class React {
     public static final String DISPATCH = "$dispatch$";
     public static final String SET_STATE = "$setState$";
 
-    public static void init() {
-        final Resources bundle = Resources.INSTANCE;
-        ScriptInjector.fromString(bundle.js_react().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
-        ScriptInjector.fromString(bundle.js_react_dom().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
-        ScriptInjector.fromString(bundle.js_react_router().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
-    }
-
     /**
-     *
      * @param object
      * @return
      */
@@ -55,7 +45,6 @@ public class React {
     public static native ReactElement createElement0(Object component, Object props, Object children);
 
     /**
-     *
      * @param component
      * @param props
      * @param children

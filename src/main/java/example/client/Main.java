@@ -1,22 +1,24 @@
 package example.client;
 
 import com.google.gwt.core.client.EntryPoint;
+import com.google.gwt.core.client.GWT;
 import com.google.gwt.core.client.ScriptInjector;
 import dagger.Component;
 import dagger.Module;
 import dagger.Provides;
 import elemental.client.Browser;
+import example.client.resources.Camber;
+import example.client.resources.Resources;
 import io.clickhandler.web.Bus;
-import io.clickhandler.web.Func;
-import io.clickhandler.web.JSON;
-import io.clickhandler.web.Jso;
+import io.clickhandler.web.Try;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.dom.ReactDOM;
 import io.clickhandler.web.react.ReactComponent;
 import io.clickhandler.web.react.ReactElement;
-import io.clickhandler.web.resources.Resources;
 import io.clickhandler.web.router.History;
 import io.clickhandler.web.router.ReactRouter;
+import io.clickhandler.web.router.Route;
+import io.clickhandler.web.router.RouterProps;
 import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
@@ -29,17 +31,35 @@ import java.util.Date;
  *
  */
 public class Main implements EntryPoint {
+    static final Resources INSTANCE = GWT.create(Resources.class);
+
+    static void init() {
+        final Resources bundle = INSTANCE;
+        ScriptInjector.fromString(bundle.js_react().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
+        ScriptInjector.fromString(bundle.js_react_dom().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
+        ScriptInjector.fromString(bundle.js_react_router().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
+    }
+
     @Override
     public void onModuleLoad() {
-        HiComponent.Props props = Jso.create(HiComponent.Props.class).name("Hello");
-        Browser.getWindow().getConsole().log(JSON.stringify(props));
+        init();
 
-        props = JSON.parse(JSON.stringify(props));
-        Browser.getWindow().getConsole().log(props);
+        MyComponent.instance.hiComponent().getReactClass();
+        Browser.getWindow().getConsole().log(MyComponent.instance.hiComponent());
 
-        ScriptInjector.fromString(Resources.INSTANCE.js_react().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
-        ScriptInjector.fromString(Resources.INSTANCE.js_react_dom().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
-        ScriptInjector.fromString(Resources.INSTANCE.js_react_router().getText()).setWindow(ScriptInjector.TOP_WINDOW).inject();
+//        // Create Router.
+//        final ReactElement router =
+//            ReactRouter.create(new RouterProps()
+//                .history(ReactRouter.getHashHistory())
+//                .routes(new Route()
+//                    .path("/")
+//                    .childRoutes()
+//                ));
+//
+//        Try.run(beforeRender);
+//
+//        // Render.
+//        ReactDOM.render(router, Browser.getDocument().getElementById(elementId));
 
         ReactDOM.render(MyComponent.instance.hiComponent().$(
             $ -> $.name("Fluent Setter")
@@ -135,7 +155,6 @@ public class Main implements EntryPoint {
 
             @JsOverlay
             default Props name(String name) {
-                Browser.getWindow().getConsole().log("HI @JsOverlay");
                 setName(name);
                 return this;
             }

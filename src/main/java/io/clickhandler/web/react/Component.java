@@ -9,6 +9,7 @@ import io.clickhandler.web.dom.CSSProps;
 import io.clickhandler.web.dom.DOM;
 import io.clickhandler.web.router.History;
 import jsinterop.annotations.JsIgnore;
+import jsinterop.annotations.JsMethod;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 
@@ -19,47 +20,47 @@ import javax.inject.Inject;
  * @param <S>
  */
 public abstract class Component<P, S> {
+//    @JsProperty
+//    public final Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
+//    @JsProperty
+//    public final Func.Run componentDidMount = Func.bind(this::componentDidMount0);
+//    @JsProperty
+//    public final Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
+//    ///////////////////////////////////////////////////////////////////////////////////////////////////
+//    // Lifecycle
+//    ///////////////////////////////////////////////////////////////////////////////////////////////////
+//    @JsProperty
+//    public final Func.Run1<P> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
+//    @JsProperty
+//    public final Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
+//    ///////////////////////////////////////////////////////////////////////////////////////////////////
+//    // State
+//    ///////////////////////////////////////////////////////////////////////////////////////////////////
+//    @JsProperty
+//    public final Func.Run2<P, S> componentWillUpdate = Func.bind(this::componentWillUpdate0);
+//    @JsProperty
+//    public final Func.Call<S> getInitialState = Func.bind(this::getInitialState);
+//    @JsProperty
+//    public final Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
+//@JsProperty
+//public final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Render
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+//    @JsProperty(name = "render")
+//    public final Func.Call<ReactElement> render = Func.bind(this::render0);
     protected final Console console = Browser.getWindow().getConsole();
     protected final Document document = Browser.getDocument();
     protected final Window window = Browser.getWindow();
     @Inject
     Bus bus;
-    @JsProperty
-    private final Func.Run componentWillMount = Func.bind(this::componentWillMount0);
     @Inject
     History history;
-    @JsProperty
-    private Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
-    @JsProperty
-    private Func.Run componentDidMount = Func.bind(this::componentDidMount0);
-    @JsProperty
-    private Func.Run componentWillUnmount = Func.bind(this::componentWillUnmount0);
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     // Defaults
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     @JsProperty
-    private String displayName = "";
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Lifecycle
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    @JsProperty
-    private Func.Run1<P> componentWillReceiveProps = Func.bind(this::componentWillReceiveProps0);
-    @JsProperty
-    private Func.Call<P> getDefaultProps = Func.bind(this::getDefaultProps);
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // State
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    @JsProperty
-    private Func.Run2<P, S> componentWillUpdate = Func.bind(this::componentWillUpdate0);
-    @JsProperty
-    private Func.Call<S> getInitialState = Func.bind(this::getInitialState);
-    @JsProperty
-    private Func.Call2<Boolean, P, S> shouldComponentUpdate = Func.bind(this::shouldComponentUpdate0);
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    // Render
-    ///////////////////////////////////////////////////////////////////////////////////////////////////
-    @JsProperty
-    private Func.Call<ReactElement> render = Func.bind(this::render0);
+    public String displayName = "";
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -68,6 +69,17 @@ public abstract class Component<P, S> {
     private ContextTypes contextTypes = new ContextTypes();
 
     public Component() {
+        Reflection.set(this, "render", Func.bind(this::render0));
+        Reflection.set(this, "componentDidUpdate", Func.bind(this::componentDidUpdate0));
+        Reflection.set(this, "componentDidMount", Func.bind(this::componentDidMount0));
+        Reflection.set(this, "componentWillUnmount", Func.bind(this::componentWillUnmount0));
+        Reflection.set(this, "componentWillReceiveProps", Func.bind(this::componentWillReceiveProps0));
+        Reflection.set(this, "getDefaultProps", Func.bind(this::getDefaultProps));
+        Reflection.set(this, "componentWillUpdate", Func.bind(this::getDefaultProps));
+        Reflection.set(this, "getInitialState", Func.bind(this::getInitialState));
+        Reflection.set(this, "shouldComponentUpdate", Func.bind(this::shouldComponentUpdate0));
+        Reflection.set(this, "componentWillMount", Func.bind(this::componentWillMount0));
+
         displayName = getDisplayName();
         addContextTypes(contextTypes);
     }
@@ -96,13 +108,16 @@ public abstract class Component<P, S> {
     // Build Context Types Object.
     ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+    @JsIgnore
     protected void addContextTypes(ContextTypes contextTypes) {
     }
 
+    @JsIgnore
     public P getDefaultProps(ReactComponent<P, S> $this) {
         return createProps();
     }
 
+    @JsIgnore
     public S getInitialState(ReactComponent<P, S> $this) {
         return createState();
     }
@@ -128,11 +143,12 @@ public abstract class Component<P, S> {
      * @param nextProps the props object that the component will receive
      * @param nextState the state object that the component will receive
      */
-    @JsIgnore
+    @JsMethod(name = "_____1")
     protected boolean shouldComponentUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return shouldComponentUpdate($this, nextProps, nextState);
     }
 
+    @JsMethod(name = "_____2")
     protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return true;
     }
@@ -146,6 +162,7 @@ public abstract class Component<P, S> {
      * If you need to interact with the browser, perform your work in componentDidMount() or the other lifecycle methods instead.
      * Keeping render() pure makes server rendering more practical and makes components easier to think about.
      */
+    @JsMethod(name = "_____3")
     protected ReactElement render0(final ReactComponent<P, S> $this) {
         P props = $this.getProps();
         S state = $this.getState();
@@ -182,20 +199,21 @@ public abstract class Component<P, S> {
         }
     }
 
+    @JsMethod(name = "_____4")
     protected abstract ReactElement render(final ReactComponent<P, S> $this, P props, S state);
 
-    @JsIgnore
+    @JsMethod(name = "_____5")
     private void componentWillMount0(final ReactComponent<P, S> $this) {
         Reflection.set($this, React.BUS, new BusDelegate(bus));
         componentWillMount($this, $this.getProps(), $this.getState());
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____6")
     protected void componentWillMount(final ReactComponent<P, S> $this, P props, S state) {
 
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____7")
     private void componentDidMount0(final ReactComponent<P, S> $this) {
         componentDidMount($this);
     }
@@ -206,34 +224,35 @@ public abstract class Component<P, S> {
      * If you want to integrate with other JavaScript frameworks, set timers using setTimeout or setInterval,
      * or send AJAX requests, perform those operations in this method.
      */
-    @JsIgnore
+    @JsMethod(name = "_____8")
     protected void componentDidMount(final ReactComponent<P, S> $this) {
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____9")
     private void componentWillReceiveProps0(final ReactComponent<P, S> $this, P nextProps) {
         componentWillReceiveProps($this, nextProps);
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____10")
     protected void componentWillReceiveProps(final ReactComponent<P, S> $this, P nextProps) {
 
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____11")
     protected void componentWillUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
 
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____12")
     private void componentDidUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         componentDidUpdate($this, nextProps, nextState);
     }
 
+    @JsMethod(name = "_____13")
     protected void componentDidUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____14")
     protected void componentWillUnmount0(final ReactComponent<P, S> $this) {
         try {
             $this.cleanup();
@@ -242,10 +261,11 @@ public abstract class Component<P, S> {
         }
     }
 
+    @JsMethod(name = "_____15")
     protected void componentWillUnmount(final ReactComponent<P, S> $this) {
     }
 
-    @JsIgnore
+    @JsMethod(name = "_____16")
     public ReactClass getReactClass() {
         if (reactClass == null) {
             reactClass = React.createClass(this);
@@ -253,6 +273,7 @@ public abstract class Component<P, S> {
         return (ReactClass) reactClass;
     }
 
+    @JsMethod(name = "_____17")
     protected P props() {
         // Create Props.
         final P props = createProps();
@@ -271,6 +292,7 @@ public abstract class Component<P, S> {
      * @param children
      * @return
      */
+    @JsMethod(name = "_____18")
     public ReactElement $(Object... children) {
         return React.createElement(getReactClass(), props(), children);
     }
@@ -278,6 +300,7 @@ public abstract class Component<P, S> {
     /**
      * @return
      */
+    @JsMethod(name = "_____19")
     public ReactElement $() {
         return React.createElement(getReactClass(), props());
     }
@@ -286,6 +309,7 @@ public abstract class Component<P, S> {
      * @param props
      * @return
      */
+    @JsMethod(name = "_____20")
     public ReactElement $(P props) {
         return React.createElement(getReactClass(), props);
     }
@@ -295,6 +319,7 @@ public abstract class Component<P, S> {
      * @param childCallback
      * @return
      */
+    @JsMethod(name = "_____21")
     public ReactElement $(P props, Func.Run1<DOM.ChildList> childCallback) {
         final DOM.ChildList childList = new DOM.ChildList();
         if (childCallback != null) {
@@ -308,6 +333,7 @@ public abstract class Component<P, S> {
      * @param childCallback
      * @return
      */
+    @JsMethod(name = "_____22")
     public ReactElement $(Func.Run1<P> propsCallback, Func.Run1<DOM.ChildList> childCallback) {
         final P props = props();
         if (propsCallback != null) {
@@ -329,6 +355,7 @@ public abstract class Component<P, S> {
      * @param callback
      * @return
      */
+    @JsMethod(name = "_____23")
     public ReactElement $(Func.Run2<P, DOM.ChildList> callback) {
         final P props = props();
         final DOM.ChildList childList = new DOM.ChildList();
@@ -342,6 +369,7 @@ public abstract class Component<P, S> {
      * @param propsCallback
      * @return
      */
+    @JsMethod(name = "_____24")
     public ReactElement $(Func.Run1<P> propsCallback) {
         final P props = props();
         if (propsCallback != null) {
@@ -355,6 +383,7 @@ public abstract class Component<P, S> {
      * @param children
      * @return
      */
+    @JsMethod(name = "_____25")
     public ReactElement $(Func.Run1<P> propsCallback, Object... children) {
         final P props = props();
         if (propsCallback != null) {
@@ -367,6 +396,7 @@ public abstract class Component<P, S> {
      * @param childCallback
      * @return
      */
+    @JsMethod(name = "_____26")
     public ReactElement $$(Func.Run1<DOM.ChildList> childCallback) {
         final P props = props();
         final DOM.ChildList childList = new DOM.ChildList();

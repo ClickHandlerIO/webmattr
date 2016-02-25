@@ -307,7 +307,7 @@
                                     <!--<extraJvmArgs>-Xmx1024M -Xss1024k</extraJvmArgs>-->
                                     <!--<localWorkers>3</localWorkers>-->
                                     <!--<persistentunitcache>false</persistentunitcache>-->
-                                    <!--<style>OBF</style>-->
+                                    <!--<style>PRETTY</style>-->
                                     <!--<compileReport>true</compileReport>-->
                                     <!--<disableCastChecking>true</disableCastChecking>-->
                                 <!--</configuration>-->
