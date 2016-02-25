@@ -21,8 +21,11 @@ import javax.inject.Inject;
  */
 @JsType
 public abstract class Component<P, S> {
+    @JsProperty
     protected final Console console = Browser.getWindow().getConsole();
+    @JsProperty
     protected final Document document = Browser.getDocument();
+    @JsProperty
     protected final Window window = Browser.getWindow();
     @JsProperty(name = "componentDidUpdate")
     public Func.Run2<P, S> componentDidUpdate = Func.bind(this::componentDidUpdate0);
@@ -58,6 +61,7 @@ public abstract class Component<P, S> {
     ///////////////////////////////////////////////////////////////////////////////////////////////////
     //
     ///////////////////////////////////////////////////////////////////////////////////////////////////
+    @JsProperty
     private Object reactClass;
 
     public Component() {
@@ -76,18 +80,22 @@ public abstract class Component<P, S> {
         addContextTypes(contextTypes);
     }
 
+    @JsIgnore
     public static <T> T create() {
         return Jso.create();
     }
 
+    @JsIgnore
     public static <T> T create(Class<T> cls) {
         return Jso.create();
     }
 
+    @JsIgnore
     public static <T> T create(Class<T> cls, Func.Run1<T> callback) {
         return Jso.create(cls, callback);
     }
 
+    @JsIgnore
     protected CSSProps css() {
         return new CSSProps();
     }
