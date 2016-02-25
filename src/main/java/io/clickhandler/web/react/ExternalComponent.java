@@ -27,9 +27,13 @@ public abstract class ExternalComponent<P> {
 
     protected P defaultProps() {
         final P props = createProps();
-        initProps(props);
-        Reflection.assign(props, reactClass().getDefaultProps());
-        applyKey(props);
+        try {
+            initProps(props);
+            Reflection.assign(props, reactClass().getDefaultProps());
+            applyKey(props);
+        } catch (Throwable e) {
+            // Ignore.
+        }
         return props;
     }
 

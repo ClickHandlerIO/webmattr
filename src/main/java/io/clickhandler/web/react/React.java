@@ -45,6 +45,15 @@ public class React {
     @JsMethod(namespace = "React", name = "createClass")
     public static native Object createClass(Object object);
 
+    @JsMethod(namespace = "React", name = "createElement")
+    public static native ReactElement createElement(Object component, Object props);
+
+    @JsMethod(namespace = "React", name = "createElement")
+    public static native ReactElement createElement(Object component, Object props, String text);
+
+    @JsMethod(namespace = "React", name = "createElement")
+    public static native ReactElement createElement0(Object component, Object props, Object children);
+
     /**
      *
      * @param component
@@ -54,6 +63,20 @@ public class React {
      */
     @JsMethod(namespace = "React", name = "createElement")
     public static native ReactElement createElement(Object component, Object props, Object... children);
+
+//    {
+//        if (children == null) {
+//            return React.createElement(component, props);
+//        }
+//        switch (children.length) {
+//            case 0:
+//                return React.createElement(component, props);
+//            case 1:
+//                return React.createElement(component, props, children[0]);
+//            default:
+//                return React.createElement(component, props, children);
+//        }
+//    }
 
 
     public static native <T> T getProps(Object component) /*-{

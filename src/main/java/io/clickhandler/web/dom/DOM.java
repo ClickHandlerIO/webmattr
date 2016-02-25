@@ -39,8 +39,7 @@ public interface DOM {
     static ReactElement create(String tagName) {
         return React.createElement(
             tagName,
-            props(tagName),
-            null
+            props(tagName)
         );
     }
 
@@ -90,6 +89,16 @@ public interface DOM {
         callback.run(props);
         final ChildList components = new ChildList();
         childrenCallback.run(components);
+
+//        switch (components.list.size()) {
+//            case 0:
+//                return React.createElement(tagName, props);
+//            case 1:
+//                return React.createElement(tagName, props, components.list.get(0));
+//            default:
+//                return React.createElement(ta)
+//        }
+
         return React.createElement(
             tagName,
             props,
