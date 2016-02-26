@@ -50,10 +50,14 @@ public abstract class Component<P, S> {
     public String displayName = "";
     @JsProperty
     public ContextTypes contextTypes = new ContextTypes();
+    @JsProperty
+    public ContextTypes childContextTypes = new ContextTypes();
     @Inject
     Bus bus;
     @JsProperty
     public Func.Run componentWillMount = Func.bind(this::componentWillMount0);
+    @JsProperty
+    public Func.Call getChildContext = this::getChildContext;
     @Inject
     History history;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,19 +67,9 @@ public abstract class Component<P, S> {
     private Object reactClass;
 
     public Component() {
-//        Reflection.set(this, "render", Func.bind(this::render0));
-//        Reflection.set(this, "componentDidUpdate", Func.bind(this::componentDidUpdate0));
-//        Reflection.set(this, "componentDidMount", Func.bind(this::componentDidMount0));
-//        Reflection.set(this, "componentWillUnmount", Func.bind(this::componentWillUnmount0));
-//        Reflection.set(this, "componentWillReceiveProps", Func.bind(this::componentWillReceiveProps0));
-//        Reflection.set(this, "getDefaultProps", Func.bind(this::getDefaultProps));
-//        Reflection.set(this, "componentWillUpdate", Func.bind(this::getDefaultProps));
-//        Reflection.set(this, "getInitialState", Func.bind(this::getInitialState));
-//        Reflection.set(this, "shouldComponentUpdate", Func.bind(this::shouldComponentUpdate0));
-//        Reflection.set(this, "componentWillMount", Func.bind(this::componentWillMount0));
-
         displayName = getDisplayName();
         addContextTypes(contextTypes);
+        addChildContextTypes(childContextTypes);
     }
 
     @JsIgnore
@@ -112,6 +106,10 @@ public abstract class Component<P, S> {
     }
 
     @JsIgnore
+    protected void addChildContextTypes(ContextTypes contextTypes) {
+    }
+
+    @JsIgnore
     public P getDefaultProps(ReactComponent<P, S> $this) {
         return createProps();
     }
@@ -128,6 +126,10 @@ public abstract class Component<P, S> {
 
     @JsIgnore
     protected native S createState() /*-{
+        return {};
+    }-*/;
+
+    protected native Object getChildContext() /*-{
         return {};
     }-*/;
 
@@ -154,6 +156,7 @@ public abstract class Component<P, S> {
         return true;
     }
 
+    @Deprecated
     protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return true;
     }
@@ -236,11 +239,11 @@ public abstract class Component<P, S> {
         try {
             intakeProps($this, $this.props(), nextProps);
         } finally {
-            componentWillReceiveProps($this, nextProps);
+            componentWillReceiveProps($this, $this.props(), nextProps);
         }
     }
 
-    protected void componentWillReceiveProps(final ReactComponent<P, S> $this, P nextProps) {
+    protected void componentWillReceiveProps(final ReactComponent<P, S> $this, P curProps, P nextProps) {
 
     }
 
@@ -260,6 +263,7 @@ public abstract class Component<P, S> {
         }
     }
 
+    @Deprecated
     protected void componentDidUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
     }
 
