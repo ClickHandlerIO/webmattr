@@ -8,96 +8,93 @@ import jsinterop.annotations.JsType;
  * Wasabi Envelope
  */
 @JsType(isNative = true)
-public class WsEnvelope {
-    protected WsEnvelope() {
-    }
+public interface WsEnvelope {
+    @JsProperty(name = "m")
+    double getM();
 
     @JsProperty(name = "m")
-    protected native double getM();
-
-    @JsProperty(name = "m")
-    protected native void setM(double m);
+    void setM(double m);
 
     @JsProperty(name = "i")
-    protected native double getI();
+    double getI();
 
     @JsProperty(name = "i")
-    protected native void setI(double i);
+    void setI(double i);
 
     @JsProperty(name = "c")
-    protected native double getC();
+    double getC();
 
     @JsProperty(name = "c")
-    protected native void setC(double c);
+    void setC(double c);
 
     @JsProperty(name = "t")
-    protected native String getT();
+    String getT();
 
     @JsProperty(name = "t")
-    protected native void setT(String t);
+    void setT(String t);
 
     @JsProperty(name = "b")
-    protected native String getB();
+    String getB();
 
     @JsProperty(name = "b")
-    protected native void setB(String c);
+    void setB(String c);
 
     @JsOverlay
-    public final double method() {
+    default double method() {
         return this.getM();
     }
 
     @JsOverlay
-    public final double id() {
+    default double id() {
         return this.getI();
     }
 
     @JsOverlay
-    public final double code() {
+    default double code() {
         return this.getC();
     }
 
     @JsOverlay
-    public final String type() {
+    default String type() {
         return this.getT();
     }
 
     @JsOverlay
-    public final String body() {
+    default String body() {
         return this.getB();
     }
 
     @JsOverlay
-    public final WsEnvelope method(final double method) {
+    default WsEnvelope method(final double method) {
         this.setM(method);
         return this;
     }
 
     @JsOverlay
-    public final WsEnvelope id(final double id) {
+    default WsEnvelope id(final double id) {
         this.setI(id);
         return this;
     }
 
     @JsOverlay
-    public final WsEnvelope code(final double code) {
+    default WsEnvelope code(final double code) {
         this.setC(code);
         return this;
     }
 
     @JsOverlay
-    public final WsEnvelope type(final String type) {
+    default WsEnvelope type(final String type) {
         this.setT(type);
         return this;
     }
 
     @JsOverlay
-    public final WsEnvelope body(final String body) {
+    default WsEnvelope body(final String body) {
         this.setB(body);
         return this;
     }
 
-    public static class Factory {
+    class Factory {
         public static native WsEnvelope create() /*-{
             return {};
         }-*/;
@@ -116,7 +113,7 @@ public class WsEnvelope {
         }
     }
 
-    public static class Constants {
+    class Constants {
         // Direction
         public static final int OUT = 0;
         public static final int IN = 1;
