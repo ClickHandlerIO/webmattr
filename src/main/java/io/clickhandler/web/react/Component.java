@@ -52,12 +52,12 @@ public abstract class Component<P, S> {
     public ContextTypes contextTypes = new ContextTypes();
     @JsProperty
     public ContextTypes childContextTypes = new ContextTypes();
+    @JsProperty
+    public Func.Call getChildContext = this::getChildContext;
     @Inject
     Bus bus;
     @JsProperty
     public Func.Run componentWillMount = Func.bind(this::componentWillMount0);
-    @JsProperty
-    public Func.Call getChildContext = this::getChildContext;
     @Inject
     History history;
     ///////////////////////////////////////////////////////////////////////////////////////////////////
@@ -147,17 +147,10 @@ public abstract class Component<P, S> {
      * @param nextState the state object that the component will receive
      */
     protected boolean shouldComponentUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
-        boolean result = shouldComponentUpdate($this, $this.props(), nextProps, $this.state(), nextState);
-        if (!result) return false;
-        return shouldComponentUpdate($this, nextProps, nextState);
+        return shouldComponentUpdate($this, nextProps, $this.props(), $this.state(), nextState);
     }
 
     protected boolean shouldComponentUpdate(ReactComponent<P, S> $this, P curProps, P nextProps, S curState, S nextState) {
-        return true;
-    }
-
-    @Deprecated
-    protected boolean shouldComponentUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
         return true;
     }
 
@@ -222,7 +215,7 @@ public abstract class Component<P, S> {
         try {
             intakeProps($this, null, $this.props());
         } finally {
-            componentDidMount($this);
+            componentDidMount($this, $this.getProps(), $this.getState());
         }
     }
 
@@ -232,7 +225,7 @@ public abstract class Component<P, S> {
      * If you want to integrate with other JavaScript frameworks, set timers using setTimeout or setInterval,
      * or send AJAX requests, perform those operations in this method.
      */
-    protected void componentDidMount(final ReactComponent<P, S> $this) {
+    protected void componentDidMount(final ReactComponent<P, S> $this, P props, S state) {
     }
 
     private void componentWillReceiveProps0(final ReactComponent<P, S> $this, P nextProps) {
@@ -255,19 +248,11 @@ public abstract class Component<P, S> {
 
     }
 
-    private void componentDidUpdate0(final ReactComponent<P, S> $this, P nextProps, S nextState) {
-        try {
-            componentDidUpdate($this, $this.props(), nextProps, $this.state(), nextState);
-        } finally {
-            componentDidUpdate($this, nextProps, nextState);
-        }
+    private void componentDidUpdate0(final ReactComponent<P, S> $this, P prevProps, S prevState) {
+        componentDidUpdate($this, prevProps, $this.props(), prevState, $this.state());
     }
 
-    @Deprecated
-    protected void componentDidUpdate(final ReactComponent<P, S> $this, P nextProps, S nextState) {
-    }
-
-    protected void componentDidUpdate(final ReactComponent<P, S> $this, P curProps, P nextProps, S curState, S nextState) {
+    protected void componentDidUpdate(final ReactComponent<P, S> $this, P prevProps, P curProps, S prevState, S curState) {
     }
 
     protected void componentWillUnmount0(final ReactComponent<P, S> $this) {

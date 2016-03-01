@@ -135,12 +135,6 @@ public class Main implements EntryPoint {
             }, "Click Me"));
         }
 
-        @Override
-        protected void componentDidUpdate(ReactComponent<Props, State> $this, Props nextProps, State nextState) {
-            super.componentDidUpdate($this, nextProps, nextState);
-            console.log(nextProps);
-        }
-
         @JsType(isNative = true)
         public interface Props {
             @JsProperty
