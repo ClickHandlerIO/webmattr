@@ -1,6 +1,7 @@
 package io.clickhandler.web.router;
 
 import io.clickhandler.web.react.BaseProps;
+import jsinterop.annotations.JsOverlay;
 import jsinterop.annotations.JsProperty;
 import jsinterop.annotations.JsType;
 
@@ -23,7 +24,7 @@ public interface RouteProps<T> extends BaseProps {
      * @return
      */
     @JsProperty
-    Location getLocation();
+    Location<T> getLocation();
 
     /**
      * The dynamic segments of the URL.
@@ -42,9 +43,16 @@ public interface RouteProps<T> extends BaseProps {
     Route getRoute();
 
     /**
-     *
      * @return
      */
     @JsProperty
-    T getRouteParams();
+    Object getRouteParams();
+
+    /**
+     * @return Query Params
+     */
+    @JsOverlay
+    default T getQueryParams() {
+        return getLocation().getQuery();
+    }
 }

@@ -7,7 +7,7 @@ import jsinterop.annotations.JsType;
  *
  */
 @JsType(isNative = true)
-public interface Location {
+public interface Location<T> {
     /**
      * The pathname portion of the URL, without query string
      *
@@ -53,10 +53,10 @@ public interface Location {
     void setAction(String action);
 
     @JsProperty
-    Object getQuery();
+    T getQuery();
 
     @JsProperty
-    void setQuery(Object query);
+    void setQuery(T query);
 
     /**
      *
