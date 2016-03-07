@@ -25,10 +25,16 @@ public class WsDispatcher {
     private int reaperMillis = 500;
     private Timer reaperTimer;
     private int id = 0;
+    private Func.Run1<Func.Run1<Boolean>> connectedCallback;
 
     public WsDispatcher(Bus bus, String url) {
+        this(bus, url, null);
+    }
+
+    public WsDispatcher(Bus bus, String url, Func.Run1<Func.Run1<Boolean>> connectedCallback) {
         this.bus = bus;
         this.url = url;
+        this.connectedCallback = connectedCallback;
     }
 
     public Bus getBus() {
@@ -41,6 +47,14 @@ public class WsDispatcher {
 
     public Ws getWebSocket() {
         return webSocket;
+    }
+
+    public Func.Run1<Func.Run1<Boolean>> getConnectedCallback() {
+        return connectedCallback;
+    }
+
+    public void setConnectedCallback(Func.Run1<Func.Run1<Boolean>> connectedCallback) {
+        this.connectedCallback = connectedCallback;
     }
 
     /**
@@ -114,7 +128,7 @@ public class WsDispatcher {
 
         int count = 0;
         while (!pendingQueue.isEmpty()) {
-            if (count > 10) {
+            if (count > 50) {
                 break;
             }
             send(pendingQueue.remove());
@@ -123,7 +137,7 @@ public class WsDispatcher {
 
         // Give a little break.
         if (!pendingQueue.isEmpty()) {
-            Try.later(0, this::drainQueue);
+            Try.later(this::drainQueue);
         }
     }
 
@@ -131,15 +145,33 @@ public class WsDispatcher {
      *
      */
     private void connected() {
+        Try.run(() -> bus.publish(new WsConnectedEvent(this)));
+
+        for (AddressSubscription sub : subMap.values()) {
+            sub.state = SubState.NOT_REGISTERED;
+            sub.subscribeToServer();
+        }
+
         // Try draining the queue.
-        drainQueue();
+        if (connectedCallback != null) {
+            connectedCallback.run((success) -> {
+                if (success)
+                    drainQueue();
+            });
+        } else {
+            drainQueue();
+        }
     }
 
     /**
      *
      */
     private void closed() {
-        // Is this ok?
+        Try.run(() -> bus.publish(new WsClosedEvent(this)));
+
+        for (AddressSubscription sub : subMap.values()) {
+            sub.state = SubState.NOT_REGISTERED;
+        }
     }
 
     /**
@@ -325,8 +357,22 @@ public class WsDispatcher {
                         String payload,
                         Func.Run1<WsEnvelope> callback,
                         Func.Run timeoutCallback) {
-        final WsEnvelope envelope = WsEnvelope.Factory.create(WsEnvelope.Constants.IN, nextId(), 0, type, payload);
-        final Outgoing call = new Outgoing(inType, outType, new Date().getTime(), timeoutMillis, envelope, callback, timeoutCallback);
+        final WsEnvelope envelope = WsEnvelope.Factory.create(
+            WsEnvelope.Constants.IN,
+            nextId(),
+            0,
+            type,
+            payload
+        );
+        final Outgoing call = new Outgoing(
+            inType,
+            outType,
+            new Date().getTime(),
+            timeoutMillis,
+            envelope,
+            callback,
+            timeoutCallback
+        );
         send(call);
     }
 
